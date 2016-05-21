@@ -1,0 +1,20 @@
+Package: pDog
+Type: Package
+Title: pDog Management Functions
+Version: 0.1
+Date: 2016-05-21
+Author: Jason Mitchell
+Maintainer: Jason Mitchell <jmitchell@west-inc.com>
+Description: Manage the digitizing of habitat of black-tailed prairie-dog towns via shapefile technology.
+License: GNU General Public License
+BugReports: https://github.com/jasmyace/pDog/issues
+Imports:
+    raster,
+    rgdal,
+    maptools,
+    rgeos
+Depends:
+    sp
+NeedsCompilation: no
+Packaged: 2016-04-13 15:06:31 UTC; jmitchell
+RoxygenNote: 5.0.1
