@@ -1,22 +1,26 @@
+#' @export setUpReconcile
+#'   
+#' @title Set up files for reconciliation.
+
 setUpReconcile <- function(theNext){
   
   # theNext <- "CO156212"
   
-  #   ---- Ensure we have all the necessary helper functions.  
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getFolderStatus.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkCellValidity.R")  
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/setUpReconcile.R")   
-  
-  #   ---- Ensure we have all the necessary packages.  
-  packages <- c("rgdal","rgeos","maptools")
-  if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-    install.packages(setdiff(packages, rownames(installed.packages())))  
-  }
-  
-  #   ---- Add in necessary packages.
-  require(rgdal)
-  require(rgeos)
-  require(maptools)
+#   #   ---- Ensure we have all the necessary helper functions.  
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getFolderStatus.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkCellValidity.R")  
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/setUpReconcile.R")   
+#   
+#   #   ---- Ensure we have all the necessary packages.  
+#   packages <- c("rgdal","rgeos","maptools")
+#   if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+#     install.packages(setdiff(packages, rownames(installed.packages())))  
+#   }
+#   
+#   #   ---- Add in necessary packages.
+#   require(rgdal)
+#   require(rgeos)
+#   require(maptools)
   
   #   ---- Get folder structure.  
   tblFolders <- getFolderStatus()

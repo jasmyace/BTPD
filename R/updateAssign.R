@@ -1,3 +1,7 @@
+#' @export updateAssign
+#'   
+#' @title Update the assignment history in the appropriate csv.
+
 updateAssign <- function(userID,out){
   
   #   ---- Read in the stored assign, and use it to replace

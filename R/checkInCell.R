@@ -1,23 +1,29 @@
-checkInCell <- function(theNext){
+#' @export checkInCell
+#'   
+#' @title Check in a cell when complete.
+
+
+checkInCell <- function(theNext,userID){
   
   # theNext <- "CO156212"
+  # userID <- 100
   
-  #   ---- Ensure we have all the necessary helper functions.  
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getFolderStatus.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkCellValidity.R")  
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkInCell.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getRankStatus.R")   
-  
-  #   ---- Ensure we have all the necessary packages.  
-  packages <- c("rgdal","rgeos","maptools")
-  if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-    install.packages(setdiff(packages, rownames(installed.packages())))  
-  }
-  
-  #   ---- Add in necessary packages.
-  require(rgdal)
-  require(rgeos)
-  require(maptools)
+#   #   ---- Ensure we have all the necessary helper functions.  
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getFolderStatus.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkCellValidity.R")  
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkInCell.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getRankStatus.R")   
+#   
+#   #   ---- Ensure we have all the necessary packages.  
+#   packages <- c("rgdal","rgeos","maptools")
+#   if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+#     install.packages(setdiff(packages, rownames(installed.packages())))  
+#   }
+#   
+#   #   ---- Add in necessary packages.
+#   require(rgdal)
+#   require(rgeos)
+#   require(maptools)
   
   #   ---- Check for a lock on table tblCellStatus.csv
   lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
@@ -28,6 +34,14 @@ checkInCell <- function(theNext){
     #   ---- it at the same time. 
     lockdf <- data.frame(userID=userID)
     write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+  }
+  
+  assign <- read.csv("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",as.is = TRUE)
+  if( assign[assign$Grid_ID == theNext,]$open == 1 | assign[assign$Grid_ID == theNext,]$doneStatus == 1 ){
+    
+    #   ---- Remove the lock.  
+    file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+    stop("It appears as if the Grid_ID of the cell you're attempting to check in hasn't been checked out, or is already complete.  Investigate.")
   }
   
   #   ---- Get folder structure.  
@@ -123,8 +137,6 @@ checkInCell <- function(theNext){
   
   #   ---- Update the tblCellStatus csv so that this cell is officially checked in.
   #   ---- The real deal version.  
-  assign <- read.csv("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",as.is = TRUE)
-  
   assign$digiEndTime <- as.POSIXct(assign$digiEndTime,tz="America/Denver")
   assign$buffEndTime <- as.POSIXct(assign$buffEndTime,tz="America/Denver")
   

@@ -1,3 +1,7 @@
+#' @export makeInstructions
+#'   
+#' @title Make an instruction text file.
+
 makeInstructions <- function(userID,out){
   
   
@@ -47,7 +51,7 @@ cat(paste0("     LocalTowns_",theNext," containing already digitized features lo
 
 cat(paste0("  2. Also add shapefile p",paste0(thepFirstName,"_",theNext),", in which you will digitize.\n\n"),sep="",append=TRUE,file=log_con)
 
-cat(paste0("  3. When done digitizing, save your changes.\n\n"),sep="",append=TRUE,file=log_con)
+cat(paste0("  3. When done digitizing, save your changes.  If you found no towns, skip to step 6.\n\n"),sep="",append=TRUE,file=log_con)
 
 cat(paste0("  4. Now, check for digitizing issues. Submit the following to the R Console window.\n\n"),sep="",append=TRUE,file=log_con)
 
@@ -58,7 +62,7 @@ cat(paste0("  5. If the above returns any issues, fix and run again. Repeat unti
 cat(paste0("  6. At this point, digitizing of this cell is complete. Check in this cell before \n"),sep="",append=TRUE,file=log_con)
 cat(paste0("     obtaining your next.  To do that, submit the following to the R Console window.\n\n"),sep="",append=TRUE,file=log_con)
 
-cat(paste0("               checkInCell('",theNext,"')\n\n"),sep="",append=TRUE,file=log_con)
+cat(paste0("               checkInCell('",theNext,"',",userID,")\n\n"),sep="",append=TRUE,file=log_con)
 
 cat(paste0("  7. This concludes the digitizing process for this cell.  Use R function\n\n"),sep="",append=TRUE,file=log_con)  
 cat(paste0("               checkOutCell(",userID,")\n\n"),sep="",append=TRUE,file=log_con)
@@ -141,7 +145,7 @@ options(useFancyQuotes=TRUE)
   cat(paste0("  9. At this point, digitizing of this cell is complete. Check in this cell before \n"),sep="",append=TRUE,file=log_con)
   cat(paste0("     obtaining your next.  To do that, submit the following to the R Console window.\n\n"),sep="",append=TRUE,file=log_con)
   
-  cat(paste0("               checkInCell('",theNext,"')\n\n"),sep="",append=TRUE,file=log_con)
+  cat(paste0("               checkInCell('",theNext,"',",userID,")\n\n"),sep="",append=TRUE,file=log_con)
   
   cat(paste0(" 10. This concludes the digitizing process for this cell.  Use R function 'checkOutCell' \n"),sep="",append=TRUE,file=log_con)  
   cat(paste0("     with your userID to start the process anew with a different cell."),sep="",append=TRUE,file=log_con)  

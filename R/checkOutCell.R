@@ -1,3 +1,7 @@
+#' @export checkOutCell
+#'   
+#' @title Check out a cell.
+
 checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing",shpDir="//lar-file-srv/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked",shp="BTPD_Grid_CO_Ranked"){
   
   # userID <- 100
@@ -5,25 +9,24 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
   # shpDir <- "//lar-file-srv/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked"
   # shp <- "BTPD_Grid_CO_Ranked"
   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkUser.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getFolderStatus.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getRankStatus.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/makeBuffer.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getCellStatus.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/updateAssign.R")   
-  source("//lar-file-srv/Data/BTPD_2016/Analysis/R/makeInstructions.R")   
-  
-  #   ---- Ensure we have all the necessary packages.  
-  packages <- c("rgdal","rgeos","raster","foreign")
-  if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-    install.packages(setdiff(packages, rownames(installed.packages())))  
-  }
-  
-  #   ---- Add in necessary packages.
-  require(rgdal)
-  require(rgeos)
-  require(raster)
-  require(foreign)
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkUser.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getFolderStatus.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getRankStatus.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/makeBuffer.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getCellStatus.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/updateAssign.R")   
+#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/makeInstructions.R")   
+#   
+#   #   ---- Ensure we have all the necessary packages.  
+#   packages <- c("rgdal","rgeos","raster","foreign")
+#   if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+#     install.packages(setdiff(packages, rownames(installed.packages())))  
+#   }
+#   
+#   #   ---- Add in necessary packages.
+#   require(rgdal)
+#   require(rgeos)
+#   require(raster)
   
   #   ---- Check for a lock on table tblCellStatus.csv
   lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
@@ -304,9 +307,12 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
           cat(paste0("No towns found within the buffering radius of cell ",theNext,". All areas open for digitizing.\n"))
         }
         found <- TRUE
-        # plot(shpObj)
-        # plot(shpBuf,add=TRUE,col="blue")
-        # plot(shpGID,add=TRUE,col="yellow")  
+        
+        #   ---- Make an easy map, so people have an idea of where they're going.
+        plot(shpObj)
+        plot(shpBuf,add=TRUE,col="blue")
+        plot(shpGID,add=TRUE,col="yellow")  
+        legend("bottomright",legend=c("Buffer Cells","Your New Cell"),pch=c(15,15),col=c("blue","yellow"))
         
       } else {   
           #   ---- One of the 8 cells is locked.  

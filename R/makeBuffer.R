@@ -1,29 +1,10 @@
-#' @export makeBuffer.R
-#'   
-#' @title
-#' 
-#' @value
-#' 
-#' @description
-#' 
-#' @return
-#' 
-#' @details
-#' 
-#' @section
+#' @export makeBuffer
 #' 
 #' @author Jason Mitchell (jmitchell@@west-inc.com)
 #'   
 #' @seealso \code{\link{gBuffer}}, \code{\link{gIntersects}},
 #'   \code{\link{gIntersection}}
-#'   
-#' @references 
-#'   
-#' @keywords
-#' 
-#' @examples
-#' # make a buffer.
-#' makeBuffer(shp,cell,radius=2.5,cellDim.m=3218.69,inner=TRUE)
+
 makeBuffer <- function(shp,cell,radius=2.5,cellDim.m=3218.69,inner=TRUE){
   
   # shp <- allShps[[2]]

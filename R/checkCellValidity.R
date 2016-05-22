@@ -1,3 +1,8 @@
+#' @export checkCellValidity
+#'   
+#' @title Check cell validity.
+
+
 checkCellValidity <- function(shp){
 
   # shp <- "pJason_Towns_CO156212"#"sCarissa_Towns_CO156212"
