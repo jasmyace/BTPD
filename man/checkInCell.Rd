@@ -4,6 +4,6 @@
 \alias{checkInCell}
 \title{Check in a cell when complete.}
 \usage{
-checkInCell(theNext)
+checkInCell(theNext, userID)
 }
 
