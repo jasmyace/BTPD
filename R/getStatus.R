@@ -6,6 +6,7 @@
 getStatus <- function(userID){
   
   # userID <- 100
+  # userID <- "All"
   
   #   ---- Get the master cell status and master grid.  
   assign <- getCellStatus()
@@ -13,15 +14,20 @@ getStatus <- function(userID){
   names <- read.csv("//lar-file-srv/Data/BTPD_2016/Analysis/Database/tblNames.csv",stringsAsFactors=FALSE)
   
   #   ---- Get the first name associated with the userID.
-  checkUser(userID)
-  firstName <- names[names$userID == userID,]$FirstName
+  if(userID == 'All'){
+    userID <- names$userID
+    firstName <- "Everybody"
+  } else {
+    checkUser(userID)
+    firstName <- names[names$userID == userID,]$FirstName
+  }
   
   #   ---- Get the different types of grid cells, based on this userID.
-  singly <- assign[assign$digiUserID == userID & !is.na(assign$digiUserID) & assign$openStatus == 0 & assign$digiSingle == 1 & !is.na(assign$digiSingle),]
-  doubly <- assign[( ( assign$digiUserID == userID  & !is.na(assign$digiUserID ) ) |
-                     ( assign$digiPartner == userID & !is.na(assign$digiPartner) ) ) & assign$openStatus == 0 & assign$digiDouble == 1 & !is.na(assign$digiDouble),]
-  buffer <- assign[assign$buffUserID == userID & !is.na(assign$buffUserID),]
-  closed <- assign[assign$digiUserID == userID & !is.na(assign$digiUserID) & assign$doneStatus == 1,]
+  singly <- assign[assign$digiUserID %in% userID & !is.na(assign$digiUserID) & assign$openStatus == 0 & assign$digiSingle == 1 & !is.na(assign$digiSingle),]
+  doubly <- assign[( ( assign$digiUserID %in% userID  & !is.na(assign$digiUserID ) ) |
+                     ( assign$digiPartner %in% userID & !is.na(assign$digiPartner) ) ) & assign$openStatus == 0 & assign$digiDouble == 1 & !is.na(assign$digiDouble),]
+  buffer <- assign[assign$buffUserID %in% userID & !is.na(assign$buffUserID),]
+  closed <- assign[assign$digiUserID %in% userID & !is.na(assign$digiUserID) & assign$doneStatus == 1,]
   
   #   ---- Manipulate the results of querying into a useful form.
   singly <- data.frame(Grid_ID=singly[,c('Grid_ID')])
@@ -33,13 +39,19 @@ getStatus <- function(userID){
     #   ---- Identify if a user is primary or secondary for doubly-sampled cells. 
     #doubly <- data.frame(Grid_ID=c("CO159922","CO114951","CO124423","CO142881","CO134755"),digiUserID=c(100,555,555,100,666),digiPartner=c(345,776,100,345,100))
     doubly$doubly <- rep(0,nrow(doubly))
-    if(nrow(doubly[doubly$digiUserID == userID,]) > 0){
-      doubly[doubly$digiUserID == userID,]$doubly <- 1
+    if(firstName == "Everybody"){
+      
+      #   ---- When looking at everybody combined, doublys are both primary
+      #   ---- and secondary;  so the distinction is unimportant.
+      doubly$doubly <- 1
+    } else {
+      if(nrow(doubly[doubly$digiUserID == userID,]) > 0){
+        doubly[doubly$digiUserID == userID,]$doubly <- 1
+      }
+      if(nrow(doubly[doubly$digiPartner == userID,]) > 0){
+        doubly[doubly$digiPartner == userID,]$doubly <- 2
+      }
     }
-    if(nrow(doubly[doubly$digiPartner == userID,]) > 0){
-      doubly[doubly$digiPartner == userID,]$doubly <- 2
-    }
-
   }
   
   buffer <- data.frame(Grid_ID=buffer[,c('Grid_ID')])
