@@ -97,13 +97,9 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       shpBuf <- shpBuf[shpBuf@data$Grid_ID != theNext,]
       shpGID <- makeBuffer(shpObj,cell=theNext,radius=1.0,cellDim.m=3218.69,inner=TRUE)
       
-      #   ---- Uncomment to take a look at where these are.  
-      #   plot(shpObj)
-      #   plot(shpBuf,add=TRUE,col="blue")
-      #   plot(shpGID,add=TRUE,col="yellow")  
-      
       #   ---- Make sure we have no Out-for-Digitizing Grid_IDs in the selected
-      #   ---- Grid_ID's buffer.  
+      #   ---- Grid_ID's buffer.  Note that buff indicator used above is the set 
+      #   ---- of buffering cells UP to this possibly new cell.   
       checkBuf <- master[master$Grid_ID %in% shpBuf@data$Grid_ID,]
       
       #   ---- We now need to ensure all cells are available.
@@ -117,7 +113,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       nCValid <- length(Cvalid[Cvalid == TRUE])  
       
       #   ---- Actually do the check.  
-      if( nCValid == 8 ){
+      if( nCValid == nrow(checkBuf) ){
   
         #   ---- We found a valid cell with a good buffer.
         cat("Found a candidate cell...fetching buffering towns and preparing for release.\n")
@@ -180,6 +176,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             
         #   ---- Update the data frame assign with the cells that are buffering, 
         #   ---- and ID the Grid_ID causing the lock.  
+        townShps <- vector("list",nrow(shpBuf@data))
         for( j in 1:nrow(shpBuf@data) ){
               
           bufGrid_ID <- as.character(droplevels(shpBuf@data[j,]$Grid_ID))
@@ -189,14 +186,19 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
           assign[assign$Grid_ID == bufGrid_ID,]$buffPartner <- partner
           assign[assign$Grid_ID == bufGrid_ID,]$buffStartTime <- as.POSIXct(Sys.time(),tz="America/Denver")
           assign[assign$Grid_ID == bufGrid_ID,]$buffEndTime <- as.POSIXct(Sys.time(),tz="America/Denver")
-          bufBASN <- master[master$Grid_ID == bufGrid_ID,]$sampleID
               
           #   ---- Compile all town shapefiles from neighbors of the locking Grid_ID
           #   ---- and place in the folder so digitizer knows they are there.  
-          townShps <- vector("list",nrow(shpBuf@data))
           bufFolders <- tblFolders[tblFolders$Grid_ID %in% shpBuf@data$Grid_ID,]
           bufRange <- bufFolders[bufFolders$Grid_ID == bufGrid_ID,]$Range
-          bufFolder <- paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",bufRange,"/",bufGrid_ID,"/")  
+          bufFolder <- paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",bufRange,"/",bufGrid_ID,"/") 
+          bufDone <- assign[assign$Grid_ID == bufGrid_ID,]$doneStatus
+          
+          #   ---- Find out if the neighboring buffefing cell was singly or 
+          #   ---- doubly digitized.  This tells us which shapefile actually
+          #   ---- holds the towns we care about.  
+          bufBASN <- ranks[ranks$Grid_ID == bufGrid_ID,]$sampleID
+          bufDoub <- ranks[ranks$Grid_ID == bufGrid_ID,]$dblSamp
           
           #   ---- Get any valid town shapefiles and place in a list. 
           #   ---- Note we only get those with a higher BAS Number.  
@@ -204,25 +206,42 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
           #   ---- Number town has been drawn that overlaps with the
           #   ---- current town of interest.  But the current cell
           #   ---- gets first dibs.  
-          if( file.exists(paste0(bufFolder,"p",bufGrid_ID,".shp")) & (bufBASN < theBASN) ){
-            townShps[[j]] <- readOGR(paste0(shpsDir,"BTPD_Grid_CO_Ranked"),paste0("Epsilon-",bufGrid_ID))
+          if(bufDone == 1){
+            bufUserID <- assign[assign$Grid_ID == bufGrid_ID,]$digiUserID
+            FirstName <- tblNames[tblNames$userID == bufUserID,]$FirstName
+            if(bufDoub == 0){
+              if( file.exists(paste0(bufFolder,"p",FirstName,"_Towns_",bufGrid_ID,".shp")) & (bufBASN < theBASN) ){
+                townShps[[j]] <- readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("p",FirstName,"_Towns_",bufGrid_ID),verbose=FALSE)
+              }
+            } else {
+              if( file.exists(paste0(bufFolder,"reconciling_Towns_",bufGrid_ID,".shp")) & (bufBASN < theBASN) ){
+                townShps[[j]] <- readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID),verbose=FALSE)
+              }
+            }
           }
         }
         
         #   ---- Given the list of neighboring towns, paste together 
         #   ---- into one nice shapefile.  
         allShps <- NULL
+        first <- 0
+        triggered <- 0
         for(j in 1:length(townShps)){
           if(!is.null(townShps[[j]])){
-            nR <- length(slot(townShps[[j]],"polygons"));  
-            if(j == 1){                                                                                                                                                                               # for 1st shp file, do this
-              uidR          <- 1;                                                                                                                                                               # make a unique id
-              allShps       <- spChFIDs(townShps[[j]], as.character(uidR:(uidR + nR - 1)));                                                                                                    # make feature id of polygons unique
-              uidR          <- uidR + nR;      
+            nR <- length(slot(townShps[[j]],"polygons")) 
+            if(triggered == 0){
+              first <- 1
+            }
+            if(first == 1){                                                                                                                                                                                  # for 1st shp file, do this
+              uidR          <- 1                                                                                                                                                               # make a unique id
+              allShps       <- spChFIDs(townShps[[j]], as.character(uidR:(uidR + nR - 1)))                                                                                                    # make feature id of polygons unique
+              uidR          <- uidR + nR
+              triggered     <- 1
+              first         <- 0
             } else {                                                                                                                                                                                  # for other than 1st shp file, do this
-              townShps[[j]] <- spChFIDs(townShps[[j]], as.character(uidR:(uidR + nR - 1)));                                                                                                    # make feature id of polygons unique
-              uidR          <- uidR + nR;                                                                                                                                                       # make unique id for all polys
-              allShps       <- spRbind(allShps,townShps[[j]]);                                                                                                                                   # union ith shp file with all previous ones
+              townShps[[j]] <- spChFIDs(townShps[[j]], as.character(uidR:(uidR + nR - 1)))                                                                                                    # make feature id of polygons unique
+              uidR          <- uidR + nR                                                                                                                                              # make unique id for all polys
+              allShps       <- spRbind(allShps,townShps[[j]])                                                                                                                                  # union ith shp file with all previous ones
             }   
           }
         }
@@ -238,14 +257,17 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
         
         #   ---- Make a grid shapefile of the buffer region for placement
         #   ---- in the theNext folder.
-        # writeOGR(shpBuf,paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",theFolder$Range,"/",theNext),"LocalGrid",overwrite_layer=TRUE,driver="ESRI Shapefile")
         localGrid <- as(shpGID,"SpatialLinesDataFrame")
         localGrid <- spTransform(localGrid,CRS(projAEAc))
         writeOGR(localGrid,paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",theFolder$Range,"/",theNext),paste0("LocalGrid_",theNext),overwrite_layer=TRUE,driver="ESRI Shapefile")
         
+        #   ---- Determine length in meters of one cell; i.e., transect length. 
+        cellUnit <- 3218.694
+        
         #   ---- Make a mini-grid shapefile of the buffer region for placement
         #   ---- into the theNext folder.  Currently assumes a 3x3 big local grid.
-        r <- raster(extent(shpBuf@bbox),nrow=15,ncol=15,crs=shpBuf@proj4string)            
+        r <- raster(extent(gBuffer(shpGID,width=cellUnit)),nrow=15,ncol=15,crs=shpBuf@proj4string)
+        #r <- raster(extent(shpBuf@bbox),nrow=15,ncol=15,crs=shpBuf@proj4string)            
         r[] <- 1:ncell(r)
         miniGrid <- as(r, "SpatialPolygonsDataFrame")
         miniGrid <- as(miniGrid,"SpatialLinesDataFrame")
@@ -286,10 +308,6 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
         found <- TRUE
         
         #   ---- Make an easy map, so people have an idea of where they're going.
-#         plot(shpObj)
-#         plot(shpBuf,add=TRUE,col="blue")
-#         plot(shpGID,add=TRUE,col="yellow")  
-#         legend("bottomright",legend=c("Buffer Cells","Your New Cell"),pch=c(15,15),col=c("blue","yellow"))
         getStatus("All",plotOnly=TRUE)
         
         #   ---- Add a red ring to easily pick out the new cell.  Accessed 5/24/2016.
