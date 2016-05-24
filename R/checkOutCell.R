@@ -4,29 +4,6 @@
 
 checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing",shpDir="//lar-file-srv/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked",shp="BTPD_Grid_CO_Ranked"){
   
-  # userID <- 100
-  # tblDir <- tblDir
-  # shpDir <- "//lar-file-srv/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked"
-  # shp <- "BTPD_Grid_CO_Ranked"
-  
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkUser.R")   
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getFolderStatus.R")   
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getRankStatus.R")   
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/makeBuffer.R")   
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getCellStatus.R")   
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/updateAssign.R")   
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/makeInstructions.R")   
-#   
-#   #   ---- Ensure we have all the necessary packages.  
-#   packages <- c("rgdal","rgeos","raster","foreign")
-#   if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-#     install.packages(setdiff(packages, rownames(installed.packages())))  
-#   }
-#   
-#   #   ---- Add in necessary packages.
-#   require(rgdal)
-#   require(rgeos)
-#   require(raster)
   
   #   ---- Check for a lock on table tblCellStatus.csv
   lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
@@ -309,10 +286,54 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
         found <- TRUE
         
         #   ---- Make an easy map, so people have an idea of where they're going.
-        plot(shpObj)
-        plot(shpBuf,add=TRUE,col="blue")
-        plot(shpGID,add=TRUE,col="yellow")  
-        legend("bottomright",legend=c("Buffer Cells","Your New Cell"),pch=c(15,15),col=c("blue","yellow"))
+#         plot(shpObj)
+#         plot(shpBuf,add=TRUE,col="blue")
+#         plot(shpGID,add=TRUE,col="yellow")  
+#         legend("bottomright",legend=c("Buffer Cells","Your New Cell"),pch=c(15,15),col=c("blue","yellow"))
+        getStatus("All",plotOnly=TRUE)
+        
+        #   ---- Add a red ring to easily pick out the new cell.  Accessed 5/24/2016.
+        #   ---- http://stackoverflow.com/questions/29624895/how-to-add-a-hole-to-a-polygon-within-a-spatialpolygonsdataframe
+        AddHoleToPolygon <-function(poly,hole){
+          
+          # poly <- outCircle
+          # hole <- inCircle
+          
+          # invert the coordinates for Polygons to flag it as a hole
+          coordsHole <-  hole@polygons[[1]]@Polygons[[1]]@coords
+          newHole <- Polygon(coordsHole,hole=TRUE)
+          
+          # punch the hole in the main poly
+          listPol <- poly@polygons[[1]]@Polygons
+          listPol[[length(listPol)+1]] <- newHole
+          punch <- Polygons(listPol,poly@polygons[[1]]@ID)
+          
+          # make the polygon a SpatialPolygonsDataFrame as the entry
+          new <- SpatialPolygons(list(punch),proj4string=poly@proj4string)
+          #new <- SpatialPolygonsDataFrame(new,data=as(poly,"data.frame"))
+          
+          return(new)
+        }
+        
+        if(double == 0){
+          
+          plot(shpGID,add=TRUE,col="#d7191c",border="white")
+        } else {
+          
+          #   ---- Later add an if to deal with primary vs. secondary. 
+          plot(shpGID,add=TRUE,col="#fdae61",border="white")
+        }
+        
+        outCircle <- gBuffer(gCentroid(shpGID),byid=TRUE,width=12000)
+        inCircle <- gBuffer(gCentroid(shpGID),byid=TRUE,width=9000)        
+        
+        ring <- AddHoleToPolygon(outCircle,inCircle)
+        
+        plot(ring,add=TRUE,col="red",border="red")
+        plot(shpBuf,add=TRUE,col="#a6d96a",border="white")
+        
+        mtext(side=3,line=-0.75,"Your newly checked-out cell has been circled in red.")
+        
         
       } else {   
           #   ---- One of the 8 cells is locked.  

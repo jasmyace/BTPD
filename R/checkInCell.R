@@ -7,24 +7,7 @@ checkInCell <- function(theNext,userID){
   
   # theNext <- "CO156212"
   # userID <- 100
-  
-#   #   ---- Ensure we have all the necessary helper functions.  
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getFolderStatus.R")   
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkCellValidity.R")  
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/checkInCell.R")   
-#   source("//lar-file-srv/Data/BTPD_2016/Analysis/R/getRankStatus.R")   
-#   
-#   #   ---- Ensure we have all the necessary packages.  
-#   packages <- c("rgdal","rgeos","maptools")
-#   if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-#     install.packages(setdiff(packages, rownames(installed.packages())))  
-#   }
-#   
-#   #   ---- Add in necessary packages.
-#   require(rgdal)
-#   require(rgeos)
-#   require(maptools)
-  
+
   #   ---- Check for a lock on table tblCellStatus.csv
   lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
   if(length(lock) > 0){

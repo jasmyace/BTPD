@@ -99,51 +99,25 @@ checkCellValidity <- function(shp){
     
     #   ---- Check for towns numbered zero.  
     if( substr(shp,1,5) == "recon" ) {
-      
       df <- data.frame(Town_ID=shpfile@data[order(shpfile@data$Recon_T_ID),])
-      
-      if( sum(df$Recon_T_ID == 0) > 0 ){
-        
-        #   ---- Remove the lock, if it exists.  
-        if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")}
-        stop("This Grid_ID's set of towns has at least one Town_ID labeled with a zero.  Investigate.\n")
-      }
     } else {
-      
       df <- data.frame(Town_ID=shpfile@data[order(shpfile@data$Town_ID),])
       
-      if( sum(df$Town_ID == 0) > 0 ){
-      
-        #   ---- Remove the lock, if it exists.  
-        if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")}
-        stop("This Grid_ID's set of towns has at least one Town_ID labeled with a zero.  Investigate.\n")
-      }
     }
     
 
     
 
-    #   ---- Check for sequentially numbered towns.
-    if( substr(shp,1,5) == "recon" ){
+    #   ---- Check for sequentially numbered towns.  
+    df <- data.frame(Town_ID=shpfile@data[order(shpfile@data$Town_ID),])
+    df$seq <- seq(1,nTowns,1)
+    if(df[nTowns,]$Town_ID != df[nTowns,]$seq){
       
-      df <- data.frame(Recon_T_ID=shpfile@data[order(shpfile@data$Recon_T_ID),c('Recon_T_ID')])
-      df$seq <- seq(1,nTowns,1)
-      if(df[nTowns,]$Recon_T_ID != df[nTowns,]$seq){
+      #   ---- Remove the lock, if it exists.  
+      if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")}
       
-        #   ---- Remove the lock, if it exists.  
-        if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")}
-        stop("This Grid_ID's set of towns has poor Town_ID numbering.  Investigate variable Recon_T_ID.\n")
-      }
-    } else {
-      df <- data.frame(Town_ID=shpfile@data[order(shpfile@data$Town_ID),])
-      df$seq <- seq(1,nTowns,1)
-      if(df[nTowns,]$Town_ID != df[nTowns,]$seq){
-        
-        #   ---- Remove the lock, if it exists.  
-        if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")}
-        
-        stop("This Grid_ID's set of towns has poor Town_ID numbering.  Investigate variable Town_ID.\n")
-      } 
+      stop("This Grid_ID's set of towns has poor Town_ID numbering.  Investigate.\n")
+      
     }
     
   

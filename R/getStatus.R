@@ -3,7 +3,7 @@
 #' @title Allow a digitizer to see his/her current cell status.
 
 
-getStatus <- function(userID){
+getStatus <- function(userID,plotOnly=FALSE){
   
   # userID <- 100
   # userID <- "All"
@@ -62,61 +62,72 @@ getStatus <- function(userID){
   
   #   ---- Add in Grid_IDs for which we have information, based on this userID.
   #   ---- Also, report cells of interest to the user. 
+
+    
   if(nrow(singly) > 0){
     grid@data <- merge(grid@data,singly,by=c('Grid_ID'),all.x=TRUE)
-    if(nrow(singly) == 1){
-      cat(paste0(firstName,"'s list of singly-digitized cells includes Grid_ID ",singly$Grid_ID[1],".\n"))
-    } else {
-      cat(paste0(firstName,"'s list of singly-digitized cells includes Grid_IDs ",paste0(singly$Grid_ID,collapse=", "),".\n"))
+    if( !(plotOnly == TRUE) ){
+      if(nrow(singly) == 1){
+        cat(paste0(firstName,"'s list of singly-digitized cells includes Grid_ID ",singly$Grid_ID[1],".\n"))
+      } else {
+        cat(paste0(firstName,"'s list of singly-digitized cells includes Grid_IDs ",paste0(singly$Grid_ID,collapse=", "),".\n"))
+      }
     }
   }
-  
+    
   if(nrow(doubly) > 0){
     grid@data <- merge(grid@data,doubly[,c('Grid_ID','doubly')],by=c('Grid_ID'),all.x=TRUE)
-    if(nrow(doubly[doubly$doubly == 1,]) == 1){
-      cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_ID ",doubly[doubly$doubly == 1,]$Grid_ID[1],".\n"))
-    } else if(nrow(doubly[doubly$doubly == 1,]) > 1) {
-      cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_IDs ",paste0(doubly[doubly$doubly == 1,]$Grid_ID,collapse=", "),".\n"))
-    } 
-    if(nrow(doubly[doubly$doubly == 2,]) == 1){
-      cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_ID ",doubly[doubly$doubly == 2,]$Grid_ID[1],".\n"))
-    } else if(nrow(doubly[doubly$doubly == 2,]) > 1) {
-      cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_IDs ",paste0(doubly[doubly$doubly == 2,]$Grid_ID,collapse=", "),".\n"))
-    } 
-  }  
-  
-  if(nrow(buffer) > 0){
-    grid@data <- merge(grid@data,buffer,by=c('Grid_ID'),all.x=TRUE)
-    if(nrow(buffer) == 1){
-      cat(paste0(firstName,"'s list of buffer cells includes Grid_ID ",buffer$Grid_ID[1],".\n"))
-    } else {
-      cat(paste0(firstName,"'s list of buffer cells includes Grid_IDs ",paste0(buffer$Grid_ID,collapse=", "),".\n"))
-    }
-  }  
-  
-  if(nrow(closed) > 0){
-    grid@data <- merge(grid@data,closed,by=c('Grid_ID'),all.x=TRUE)
-    if(nrow(closed) == 1){
-      cat(paste0(firstName,"'s list of closed cells includes Grid_ID ",closed$Grid_ID[1],".\n"))
-    } else {
-      cat(paste0(firstName,"'s list of closed cells includes Grid_IDs ",paste0(closed$Grid_ID,collapse=", "),".\n"))
+    if( !(plotOnly == TRUE) ){
+      if(nrow(doubly[doubly$doubly == 1,]) == 1){
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_ID ",doubly[doubly$doubly == 1,]$Grid_ID[1],".\n"))
+      } else if(nrow(doubly[doubly$doubly == 1,]) > 1) {
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_IDs ",paste0(doubly[doubly$doubly == 1,]$Grid_ID,collapse=", "),".\n"))
+      } 
+      if(nrow(doubly[doubly$doubly == 2,]) == 1){
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_ID ",doubly[doubly$doubly == 2,]$Grid_ID[1],".\n"))
+      } else if(nrow(doubly[doubly$doubly == 2,]) > 1) {
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_IDs ",paste0(doubly[doubly$doubly == 2,]$Grid_ID,collapse=", "),".\n"))
+      } 
     }
   }
-  
+    
+  if(nrow(buffer) > 0){
+    grid@data <- merge(grid@data,buffer,by=c('Grid_ID'),all.x=TRUE)
+    if( !(plotOnly == TRUE) ){
+      if(nrow(buffer) == 1){
+        cat(paste0(firstName,"'s list of buffer cells includes Grid_ID ",buffer$Grid_ID[1],".\n"))
+      } else {
+        cat(paste0(firstName,"'s list of buffer cells includes Grid_IDs ",paste0(buffer$Grid_ID,collapse=", "),".\n"))
+      }
+    }  
+  }
+    
+  if(nrow(closed) > 0){
+    grid@data <- merge(grid@data,closed,by=c('Grid_ID'),all.x=TRUE)
+    if( !(plotOnly == TRUE) ){
+      if(nrow(closed) == 1){
+        cat(paste0(firstName,"'s list of closed cells includes Grid_ID ",closed$Grid_ID[1],".\n"))
+      } else {
+        cat(paste0(firstName,"'s list of closed cells includes Grid_IDs ",paste0(closed$Grid_ID,collapse=", "),".\n"))
+      }
+    }
+  }
+    
   if(nrow(closed) == 0 & nrow(buffer) == 0 & nrow(doubly) == 0 & nrow(singly) == 0){
     cat(paste0(firstName," has nothing to report.  The Cells map will be blank."))
   }
+
   
   grid@data[is.na(grid@data)] <- 0
-  
+ 
   #   ---- Make a simple plot. 
   par(mar=c(0.5,0.5,2.0,0.5))
-  plot(grid,main=paste0(firstName,"'s Cells"))
-  plot(grid[grid@data$singly == 1,],col="yellow",add=TRUE)
-  plot(grid[grid@data$doubly == 1,],col="red",add=TRUE)
-  plot(grid[grid@data$doubly == 2,],col="orange",add=TRUE)  
-  plot(grid[grid@data$buffer == 1,],col="blue",add=TRUE)
-  plot(grid[grid@data$closed == 1,],col="green",add=TRUE)
-  legend("bottomleft",c('Singly','Doubly -- Primary','Doubly -- Secondary','Buffer','Closed'),border=rep("black",4),fill=c("yellow","red","orange","blue","green"),cex=0.6)
+  plot(grid,main=paste0(firstName,"'s Cells"),col="gray90",border="white")
+  plot(grid[grid@data$singly == 1,],col="#d7191c",border="white",add=TRUE)   # yellow
+  plot(grid[grid@data$doubly == 1,],col="#fdae61",border="white",add=TRUE)    # red
+  plot(grid[grid@data$doubly == 2,],col="#ffffbf",border="white",add=TRUE)     # orange
+  plot(grid[grid@data$buffer == 1,],col="#a6d96a",border="white",add=TRUE)   # blue
+  plot(grid[grid@data$closed == 1,],col="#1a9641",border="white",add=TRUE)   # green3
+  legend("bottomleft",c('Open','Singly','Doubly -- Primary','Doubly -- Secondary','Buffer','Closed'),border=rep("white",4),fill=c("gray90","#d7191c","#fdae61","#ffffbf","#a6d96a","#1a9641"),cex=0.6)
   
 }
