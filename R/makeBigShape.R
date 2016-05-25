@@ -38,8 +38,8 @@ makeBigShape <- function(){
   
   #   ---- Assemble all the towns in all cells digitized up to this point.  
   nShps <- nrow(done)
-  townShps <- vector('list',nShp)
-  theCells <- vector('list',nShp)
+  townShps <- vector('list',nShps)
+  theCells <- vector('list',nShps)
   theTowns <- NULL
   for(i in 1:nShps){
     townShps[[i]] <- checkShp(done[i,]$folder,paste0('p',done[i,]$FirstName,'_Towns_',done[i,]$Grid_ID))
@@ -138,6 +138,52 @@ makeBigShape <- function(){
   if( nrow(misNumbered) > 0 ){
     warning("Town_IDs appear misnumbered.")
   }
+  
+  
+  
+  #   ---- Store for safekeeping.
+  #hold <- allShps
+  allShps <- hold
+  
+  
+  #   ---- Bring in information on towns.
+  allShps@data$ID <- sapply(allShps@polygons,function(x) slot(x,"ID"))
+  allShps@data$R_ID <- seq(1,nrow(allShps@data),1)
+  allShps@data$AreaM2 <- gArea(allShps,byid=TRUE)
+  allShps@data$AreaAcres <- gArea(allShps,byid=TRUE) * 0.000247105
+  allShps@data$PerimM <- gLength(allShps,byid=TRUE)
+  
+  #   ---- Determine the number of holes per town.
+  nTowns <- dim(allShps)[1]
+  indTowns <- vector("list",nTowns)
+  holes <- matrix(NA,nTowns,ncol=2,nrow=nTowns)
+  for(i in 1:nTowns){
+    indTowns[[i]] <- SpatialPolygons(list(allShps@polygons[[i]]))
+    holes[i,1] <- indTowns[[i]]@polygons[[1]]@ID
+    holes[i,2] <- sum(sapply(indTowns[[i]]@polygons[[1]]@Polygons,function(x) slot(x,"hole")))
+  }
+  holes <- data.frame(ID=holes[,1],nHoles=holes[,2],stringsAsFactors=FALSE)
+  
+  allShps@data <- merge(allShps@data,holes,by=c('ID'),all.x=TRUE,all.y=TRUE)
+  allShps@data <- allShps@data[order(allShps@data$R_ID),]
+  
+  allShps@data$CFactor <- ifelse(allShps@data$nHoles == 0,(allShps@data$PerimM)^2 / 4 / pi / allShps@data$AreaM2,NA)
+  
+  allShps@data <- merge(allShps@data,tblRanks[,c('Grid_ID','sampleID')],by=c('Grid_ID'),all.x=TRUE)
+  allShps@data <- allShps@data[order(allShps@data$R_ID),]
+  
+  towns <- data.frame(nTowns=tapply(allShps@data$Town_ID,factor(allShps@data$Grid_ID),function(x) length(x)))
+  towns$Grid_ID <- rownames(towns)
+  rownames(towns) <- NULL
+  
+  allShps@data <- merge(allShps@data,towns,by=c('Grid_ID'),all.x=TRUE)
+  allShps@data <- allShps@data[order(allShps@data$R_ID),]
+  
+  allShps@data <- merge(allShps@data,done[,c('Grid_ID','time','digiUserID','digiPartner')],by=c('Grid_ID'),all.x=TRUE)
+  allShps@data <- merge(allShps@data,tblNames[,c('userID','FirstName')],by.x=c('digiUserID'),by.y=c('userID'),all.x=TRUE)
+  allShps@data <- allShps@data[order(allShps@data$R_ID),]
+  
+  rownames(allShps@data) <- NULL
   
   return(allShps)
   
