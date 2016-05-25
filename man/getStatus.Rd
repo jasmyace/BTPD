@@ -4,6 +4,6 @@
 \alias{getStatus}
 \title{Allow a digitizer to see his/her current cell status.}
 \usage{
-getStatus(userID)
+getStatus(userID, plotOnly = FALSE)
 }
 

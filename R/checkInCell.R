@@ -59,6 +59,9 @@ checkInCell <- function(theNext,userID){
     rShpC <- substr(files[rInd],1,nchar(files[rInd]) - 4)
     
     if( is.na(rShpC) | is.na(sShpC) | is.null(sShpC) | is.null(rShpC) | length(sShpC) == 0 | length(rShpC) == 0 ){
+      
+      #   ---- Remove the lock.  
+      file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
       stop("The folder tied to the doubly sampled Grid_ID provided lacks the requisite 's' and 'reconciling' shapefiles.  Investigate.")
     }
   } 
@@ -73,6 +76,9 @@ checkInCell <- function(theNext,userID){
   pShpC <- substr(files[pInd],1,nchar(files[pInd]) - 4)
   
   if( is.na(pShpC) | is.null(pShpC) | length(pShpC) == 0 ){
+    
+    #   ---- Remove the lock.  
+    file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
     stop("The folder tied to the doubly sampled Grid_ID provided lacks the requisite 'p' shapefile.  Investigate.\n")
   }
 
