@@ -4,8 +4,6 @@
 \alias{checkOutCell}
 \title{Check out a cell.}
 \usage{
-checkOutCell(userID, tblDir = "//lar-file-srv/Data/BTPD_2016/Digitizing",
-  shpDir = "//lar-file-srv/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked",
-  shp = "BTPD_Grid_CO_Ranked")
+checkOutCell(userID, tblDir = "//lar-file-srv/Data/BTPD_2016/Digitizing")
 }
 
