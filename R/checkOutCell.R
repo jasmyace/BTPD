@@ -2,7 +2,7 @@
 #'   
 #' @title Check out a cell.
 
-checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing",shpDir="//lar-file-srv/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked",shp="BTPD_Grid_CO_Ranked"){
+checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing"){
   
   
   #   ---- Check for a lock on table tblCellStatus.csv
@@ -22,6 +22,8 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
   #   ---- Check to make sure user is legitimate.  
   tblNames <- checkUser(userID)
   pFirstName <- as.character(droplevels(tblNames[tblNames$userID == userID,]$FirstName))
+  singleActive <- tblNames[tblNames$userID == userID,]$singleActive
+  doubleActive <- tblNames[tblNames$userID == userID,]$doubleActive
   
   #   ---- Get folder structure.  
   tblFolders <- getFolderStatus()
@@ -53,14 +55,26 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
     stop
   }
   
+  #   ---- Get the big grid so we can subset to the buffer below.  
+  shpDir <- "//lar-file-srv/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked"
+  shp <- "BTPD_Grid_CO_Ranked"
+  shpObj <- readOGR(shpDir,shp,verbose=FALSE)
+  
   #   ---- We now need to find a cell whose buffer is available.
   open <- master$openStatus    # The cell still needs to be digitizing.  
   digi <- master$digiStatus    # The cell is locked for digitizing.
   buff <- master$buffStatus    # The cell is locked for buffering.  
   done <- master$doneStatus    # The cell has been digitized and reconciled, if necessary.
+  doub <- master$dblSamp       # The cell is a doubly-sampled cell. 
   
-  #   ---- Could have a few open cells, but they're locked for digitizing or buffering.  
-  valid <- open & !digi & !buff & !done    # Want:    1  &  0  &  0  &  0  
+  #   ---- Could have a few open cells, but they're locked for digitizing or buffering. 
+  #   ---- If somebody is turned off for doubly-sampling, here is where we exclude 
+  #   ---- those cells from them.  
+  if( doubleActive == 0 ){
+    valid <- open & !digi & !buff & !done & !doub    # Want:    1  &  0  &  0  &  0  &  0
+  } else {
+    valid <- open & !digi & !buff & !done            # Want:    1  &  0  &  0  &  0  
+  }
   nValid <- length(valid[valid == TRUE])  
   
   if( sum(open) == 0 & sum(digi) == 0 & sum(buff) == 0 & sum(done) == nTotal ){
@@ -69,7 +83,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
     warning("No new cells left to digitize, but ",sum(buff)," cells currently locked in buffering.  Wait for their release.")
   } else if( nValid > 0 ){
     
-    #   ---- Reduce our options to only the list that we know is available. 
+    #   ---- Reduce our options to only the list that we know is available for this userID. 
     master <- master[valid,]
     
     #   ---- Assign an index that is the absolute position (in rows) in master.
@@ -88,11 +102,13 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       #   ---- Get the next available cell in the already-ordered ranking.  
       theNext <- master[i,]$Grid_ID
       theBASN <- master[i,]$sampleID
+      
+      
+      
       theFolder <- tblFolders[tblFolders$Grid_ID == theNext,]
       theRange <- theFolder$Range
       
       #   ---- Pull Grid_IDs that are to buffer the new Grid_ID. 
-      shpObj <- readOGR(shpDir,shp,verbose=FALSE)
       shpBuf <- makeBuffer(shpObj,cell=theNext,radius=2.5,cellDim.m=3218.69,inner=TRUE)
       shpBuf <- shpBuf[shpBuf@data$Grid_ID != theNext,]
       shpGID <- makeBuffer(shpObj,cell=theNext,radius=1.0,cellDim.m=3218.69,inner=TRUE)
@@ -350,7 +366,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
         plot(ring,add=TRUE,col="red",border="red")
         plot(shpBuf,add=TRUE,col="#a6d96a",border="white")
         
-        mtext(side=3,line=-0.75,"Your newly checked-out cell has been circled in red.")
+        mtext(side=3,line=-0.75,"Your newly checked-out cell is circled in red.")
         
         
       } else {   

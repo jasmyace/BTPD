@@ -132,7 +132,7 @@ options(useFancyQuotes=TRUE)
 
   cat(paste0("               setUpReconcile('",theNext,"')\n\n"),sep="",append=TRUE,file=log_con)
   
-  cat(paste0("     If both digitizers found no towns, jump directly to step 9.\n\n"))
+  cat(paste0("     If both digitizers found no towns, jump directly to step 9.\n\n"),sep="",append=TRUE,file=log_con)
 
   cat(paste0("  7. Now, open new file reconciling_",theNext," and add in all the same shapefiles as before, \n"),sep="",append=TRUE,file=log_con)
   cat(paste0("     this time adding in the new reconciling_Towns_",theNext," shapefile, along with the \n"),sep="",append=TRUE,file=log_con)
