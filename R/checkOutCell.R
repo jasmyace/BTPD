@@ -190,6 +190,15 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
         assign[assign$Grid_ID == theNext,]$digiStartTime <- as.POSIXct(Sys.time(),tz="America/Denver")
         assign[assign$Grid_ID == theNext,]$digiEndTime <- as.POSIXct(Sys.time(),tz="America/Denver")
             
+        #   ---- Need to see if we have shapefiles with no features. This happens often.  
+        checkShp <- function(folder,shp){                                                                 
+          if(is.null(tryCatch(readOGR(folder,shp,verbose=FALSE), warning = function(w) w)$message)){
+            shp2 <- tryCatch(readOGR(folder,shp,verbose=FALSE), warning = function(w) w)
+          } else if(tryCatch(readOGR(folder,shp,verbose=FALSE), warning = function(w) w)$message == "no features found" ){
+            shp2 <- 'no features found'                                         
+          }  
+        }
+        
         #   ---- Update the data frame assign with the cells that are buffering, 
         #   ---- and ID the Grid_ID causing the lock.  
         townShps <- vector("list",nrow(shpBuf@data))
@@ -227,11 +236,13 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             FirstName <- tblNames[tblNames$userID == bufUserID,]$FirstName
             if(bufDoub == 0){
               if( file.exists(paste0(bufFolder,"p",FirstName,"_Towns_",bufGrid_ID,".shp")) & (bufBASN < theBASN) ){
-                townShps[[j]] <- readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("p",FirstName,"_Towns_",bufGrid_ID),verbose=FALSE)
+                townShps[[j]] <- checkShp(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("p",FirstName,"_Towns_",bufGrid_ID))
+                #townShps[[j]] <- checkShp(readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("p",FirstName,"_Towns_",bufGrid_ID),verbose=FALSE)
               }
             } else {
               if( file.exists(paste0(bufFolder,"reconciling_Towns_",bufGrid_ID,".shp")) & (bufBASN < theBASN) ){
-                townShps[[j]] <- readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID),verbose=FALSE)
+                townShps[[j]] <- checkShp(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID))
+                #townShps[[j]] <- readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID),verbose=FALSE)
               }
             }
           }
@@ -243,7 +254,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
         first <- 0
         triggered <- 0
         for(j in 1:length(townShps)){
-          if(!is.null(townShps[[j]])){
+          if( class(townShps[[j]]) == "SpatialPolygonsDataFrame" ){
             nR <- length(slot(townShps[[j]],"polygons")) 
             if(triggered == 0){
               first <- 1
