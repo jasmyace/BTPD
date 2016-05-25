@@ -170,7 +170,8 @@ options(useFancyQuotes=TRUE)
     }
   }
   
-  opendir(paste0("L:/BTPD_2016/Digitizing/",theRange,"/",theNext))
+  #opendir(paste0("L:/BTPD_2016/Digitizing/",theRange,"/",theNext))
+  opendir(paste0("\\\\lar-file-srv\\Data\\BTPD_2016\\Digitizing\\",theRange,"\\",theNext))
   cat(paste0("The digitizing folder can be found at L:/BTPD_2016/Digitizing/",theRange,"/",theNext,".\n"))
   
 }
