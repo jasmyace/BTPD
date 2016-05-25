@@ -1,4 +1,4 @@
-estimateTime <- function(shp=CO){
+estimateTime <- function(shp){
   
   #   ---- Get folder structure.  
   tblFolders <- getFolderStatus()
@@ -20,7 +20,7 @@ estimateTime <- function(shp=CO){
   done$time <- done$digiEndTime - done$digiStartTime
 
   #   ---- Count the number of towns per cell.  
-  towns <- data.frame(nTowns=tapply(CO@data$Town_ID,factor(CO@data$Grid_ID),function(x) length(x)))
+  towns <- data.frame(nTowns=tapply(shp@data$Town_ID,factor(shp@data$Grid_ID),function(x) length(x)))
   towns$Grid_ID <- rownames(towns)
   rownames(towns) <- NULL
   

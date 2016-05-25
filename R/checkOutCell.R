@@ -378,9 +378,9 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
     
     } #   ---- Close the repeat.
     
-  }  # ---- Close the if.
+  }  #   ---- Close the if.
   
-  #  ---- Organize stuff for next steps.  
+  #   ---- Organize stuff for next steps.  
   write.csv(assign,paste0("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/",userID,"/tblCellStatusTMP.csv"),row.names=FALSE)
   theNextdf <- data.frame(theNext=theNext,stringsAsFactors=FALSE)
   theRangedf <- data.frame(theRange=theRange,stringsAsFactors=FALSE)
