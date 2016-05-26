@@ -66,8 +66,10 @@ checkCellValidity <- function(shp,userID){
         if(sum(gValid) < length(gValid)){
           
           #   ---- Remove the lock, if it exists, and the user calling the function placed it there.  
-          if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt") & userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-            file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+          if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
+            if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            }
           }
           stop("\nThis Grid_ID's set of towns has at least one sliver.  Investigate via the coordinates provided.\n")
           
@@ -83,8 +85,10 @@ checkCellValidity <- function(shp,userID){
           text(x,y,paste0("Problem with cell ",Grid_ID,"."))
           
           #   ---- Remove the lock, if it exists, and the user calling the function placed it there.  
-          if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt") & userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-            file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+          if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
+            if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            }
           }
           stop("At least one town is disjointed from Grid_ID ",Grid_ID,".  Investigate.\n")
         }
@@ -97,8 +101,10 @@ checkCellValidity <- function(shp,userID){
         if(sum(gInts) != nTowns){
           
           #   ---- Remove the lock, if it exists, and the user calling the function placed it there.  
-          if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt") & userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-            file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+          if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
+            if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            }
           }
           stop("This Grid_ID's set of towns has at least one town that overlaps another.  Investigate.\n")
           
@@ -113,8 +119,10 @@ checkCellValidity <- function(shp,userID){
           if( sum(df$Recon_T_ID == 0) > 0 ){
             
             #   ---- Remove the lock, if it exists, and the user calling the function placed it there.  
-            if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt") & userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
+              if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+                file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+              }
             }
             stop("This Grid_ID's set of towns has at least one Town_ID labeled with a zero.  Investigate.\n")
           }
@@ -125,8 +133,10 @@ checkCellValidity <- function(shp,userID){
           if( sum(df$Town_ID == 0) > 0 ){
           
             #   ---- Remove the lock, if it exists, and the user calling the function placed it there.  
-            if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt") & userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
+              if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+                file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+              }
             }
             stop("This Grid_ID's set of towns has at least one Town_ID labeled with a zero.  Investigate.\n")
           }
@@ -143,8 +153,10 @@ checkCellValidity <- function(shp,userID){
           if(df[nTowns,]$Recon_T_ID != df[nTowns,]$seq){
           
             #   ---- Remove the lock, if it exists, and the user calling the function placed it there.  
-            if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt") & userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
+              if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+                file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+              }
             }
             stop("This Grid_ID's set of towns has poor Town_ID numbering.  Investigate variable Recon_T_ID.\n")
           }
@@ -154,8 +166,10 @@ checkCellValidity <- function(shp,userID){
           if(df[nTowns,]$Town_ID != df[nTowns,]$seq){
             
             #   ---- Remove the lock, if it exists, and the user calling the function placed it there.  
-            if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt") & userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
+              if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+                file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+              }
             }
             stop("This Grid_ID's set of towns has poor Town_ID numbering.  Investigate variable Town_ID.\n")
           } 

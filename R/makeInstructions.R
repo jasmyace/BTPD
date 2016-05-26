@@ -19,8 +19,11 @@ makeInstructions <- function(userID,out){
   #   ---- checkCellValidity function below.  We use the userID to remove a 
   #   ---- lock, if it is placed by that user.  
   tblNames <- checkUser(userID)
-  userIDs <- tblNames[tblNames$FirstName == thesFirstName,]$userID
   
+  if( thesFirstName[1,1] != "No" ){
+    userIDs <- tblNames[tblNames$FirstName == thesFirstName[1,1],]$userID
+  }
+
   if(thesFirstName == 'No'){
     
     #   ---- What to write if a singly digitized cell.  
