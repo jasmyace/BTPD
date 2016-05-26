@@ -112,8 +112,10 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
           
           #   ---- Make sure we have no Out-for-Digitizing Grid_IDs in the selected
           #   ---- Grid_ID's buffer.  Note that buff indicator used above is the set 
-          #   ---- of buffering cells UP to this possibly new cell.   
-          checkBuf <- master[master$Grid_ID %in% shpBuf@data$Grid_ID,]
+          #   ---- of buffering cells UP to this possibly new cell.  Note that we go 
+          #   ---- back to the assign, since master only has the valid -- missing the 
+          #   ---- buffering cells by default. 
+          checkBuf <- assign[assign$Grid_ID %in% shpBuf@data$Grid_ID,]
           
           #   ---- We now need to ensure all cells are available.
           Copen <- checkBuf$openStatus    # The cell still needs to be digitized.  
