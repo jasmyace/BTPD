@@ -2,9 +2,7 @@
 
 export(checkCellValidity)
 export(checkInCell)
-export(checkInCell2)
 export(checkOutCell)
-export(checkOutCell2)
 export(getStatus)
 export(makeBuffer)
 export(makeInstructions)

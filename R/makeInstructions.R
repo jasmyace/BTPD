@@ -4,8 +4,6 @@
 
 makeInstructions <- function(userID,out){
   
-  
-  
   #   ---- Get information from our helping files.
   theNext <- out[[2]]#read.dbf(paste0("//lar-file-srv/Data/BTPD_2016/Analysis/Database/",userID,"/theNext.dbf"),as.is=TRUE)
   theRange <- out[[3]]#read.dbf(paste0("//lar-file-srv/Data/BTPD_2016/Analysis/Database/",userID,"/theRange.dbf"),as.is=TRUE)
@@ -16,6 +14,12 @@ makeInstructions <- function(userID,out){
   thePath <- "//LAR-FILE-SRV/Data/BTPD_2016/Digitizing"
   
   pasteString <- paste0(thePath,"/",theRange,"/",theNext,"/Instructions for Digitizing Cell ",theNext,".txt")
+  
+  #   ---- Get the userID of the other digitizer, for use in calling the 
+  #   ---- checkCellValidity function below.  We use the userID to remove a 
+  #   ---- lock, if it is placed by that user.  
+  tblNames <- checkUser(userID)
+  userIDs <- tblNames[tblNames$FirstName == thesFirstName,]$userID
   
   if(thesFirstName == 'No'){
     
@@ -55,7 +59,7 @@ cat(paste0("  3. When done digitizing, save your changes.  If you found no towns
 
 cat(paste0("  4. Now, check for digitizing issues. Submit the following to the R Console window.\n\n"),sep="",append=TRUE,file=log_con)
 
-cat(paste0("               checkCellValidity('p",thepFirstName,"_Towns_",theNext,"')\n\n"),sep="",append=TRUE,file=log_con)
+cat(paste0("               checkCellValidity('p",thepFirstName,"_Towns_",theNext,"',",userID,")\n\n"),sep="",append=TRUE,file=log_con)
 
 cat(paste0("  5. If the above returns any issues, fix and run again. Repeat until no errors remain.\n\n"),sep="",append=TRUE,file=log_con)
 
@@ -119,10 +123,10 @@ options(useFancyQuotes=TRUE)
   cat(paste0("  4. Now, check for digitizing issues. Submit the following to the R Console window.\n\n"),sep="",append=TRUE,file=log_con)
   
   cat(paste0("     ------------------------- ",toupper(thepFirstName),": Use this function. -------------------------------\n\n"),sep="",append=TRUE,file=log_con)
-  cat(paste0("               checkCellValidity('p",thepFirstName,"_Towns_",theNext,"')\n\n"),sep="",append=TRUE,file=log_con)
+  cat(paste0("               checkCellValidity('p",thepFirstName,"_Towns_",theNext,"',",userID,")\n\n"),sep="",append=TRUE,file=log_con)
 
   cat(paste0("     ------------------------- ",toupper(thesFirstName),": Use this function. ---------------------------------\n\n"),sep="",append=TRUE,file=log_con)
-  cat(paste0("               checkCellValidity('s",thesFirstName,"_Towns_",theNext,"')\n\n"),sep="",append=TRUE,file=log_con)
+  cat(paste0("               checkCellValidity('s",thesFirstName,"_Towns_",theNext,"',",userIDs,")\n\n"),sep="",append=TRUE,file=log_con)
 
   cat(paste0("  5. If the above returns any issues, fix and run again. Repeat until no errors remain.\n\n"),sep="",append=TRUE,file=log_con)
   
