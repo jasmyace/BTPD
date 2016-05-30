@@ -7,7 +7,7 @@ checkInCell <- function(theNext,userID){
   out <- tryCatch(
     {
       
-      # theNext <- "CO156212"
+      # theNext <- "CO119106"
       # userID <- 100
       
       #   ---- Check for a lock on table tblCellStatus.csv
@@ -24,8 +24,12 @@ checkInCell <- function(theNext,userID){
       assign <- read.csv("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",as.is = TRUE)
       if( assign[assign$Grid_ID == theNext,]$open == 1 | assign[assign$Grid_ID == theNext,]$doneStatus == 1 ){
         
-        #   ---- Remove the lock.  
-        file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+        #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+        if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+          if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+            file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+          }
+        }
         stop("It appears as if the Grid_ID of the cell you're attempting to check in hasn't been checked out, or is already complete.  Investigate.")
       }
   
@@ -61,8 +65,12 @@ checkInCell <- function(theNext,userID){
         
         if( is.na(rShpC) | is.na(sShpC) | is.null(sShpC) | is.null(rShpC) | length(sShpC) == 0 | length(rShpC) == 0 ){
           
-          #   ---- Remove the lock.  
-          file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+          #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+          if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+            if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            }
+          }
           stop("The folder tied to the doubly sampled Grid_ID provided lacks the requisite 's' and 'reconciling' shapefiles.  Investigate.")
         }
       } 
@@ -78,8 +86,12 @@ checkInCell <- function(theNext,userID){
       
       if( is.na(pShpC) | is.null(pShpC) | length(pShpC) == 0 ){
         
-        #   ---- Remove the lock.  
-        file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+        #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+        if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+          if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+            file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+          }
+        }
         stop("The folder tied to the doubly sampled Grid_ID provided lacks the requisite 'p' shapefile.  Investigate.\n")
       }
   
@@ -101,7 +113,7 @@ checkInCell <- function(theNext,userID){
       readCheckCellValidity <- function(Shp){
         out <- tryCatch(
           {
-            checkCellValidity(Shp)
+            checkCellValidity(Shp,userID)
           },
           warning = function(cond){
             return(1)
@@ -114,31 +126,56 @@ checkInCell <- function(theNext,userID){
       checkApply <- function(shp){
         if(class(get(paste0(substr(shp,1,1),'Shp'))) == "SpatialPolygonsDataFrame"){
           lapply(shp,readCheckCellValidity)
+          
+          #   ---- The function call to readCheckCellValidity gets rid of the lock.  Put it back for the 
+          #   ---- function checkInCell.
+          
+          #   ---- Check for a lock on table tblCellStatus.csv
+          lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
+          if(length(lock) > 0){
+            stop("The function is currently locked;  try again in a minute.")
+          } else {
+            #   ---- Lock the table tblCellStatus so that two users cannot update
+            #   ---- it at the same time. 
+            lockdf <- data.frame(userID=userID)
+            write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+          }
+          
         } else {
           cat(paste0("The check of ",shp," found no towns to check.  Be sure this is correct. If so, continue.\n"))
         }
       }
   
       pShpCCheck <- checkApply(pShpC)
+      
+      
+      
+      
       if( double == 1){sShpCCheck <- checkApply(sShpC)}
   
       #   ---- Update the tblCellStatus csv so that this cell is officially checked in.
-      #   ---- The real deal version.  
-      assign$digiEndTime <- as.POSIXct(assign$digiEndTime,tz="America/Denver")
-      assign$buffEndTime <- as.POSIXct(assign$buffEndTime,tz="America/Denver")
-    
+      #   ---- The real deal version.  Note that we convert these columns to POSIX, which make 
+      #   ---- them look different than the others (dates are now separated with a '-' instead of
+      #   ---- a '/', but it doesn't matter as long as they all look the same in the end.)
+      assign$digiEndTime <- as.POSIXlt(assign$digiEndTime,format="%m/%d/%Y %H:%M",tz="America/Denver")      
+      assign$buffEndTime <- as.POSIXlt(assign$buffEndTime,format="%m/%d/%Y %H:%M",tz="America/Denver")
+      
       #   ---- First, update the cell that was digitized.  
       assign[assign$Grid_ID == theNext,]$openStatus <- 1
       assign[assign$Grid_ID == theNext,]$digiStatus <- 0
-      assign[assign$Grid_ID == theNext,]$digiEndTime <- as.POSIXct(Sys.time(),tz="America/Denver",format="%Y%m%d %H%M%S")
+      assign[assign$Grid_ID == theNext,]$digiEndTime <- as.POSIXlt(Sys.time(),format="%m/%d/%Y %H:%M",tz="America/Denver")
       assign[assign$Grid_ID == theNext,]$doneStatus <- 1
     
       #   ---- Next, update the cells that were locked via buffering.
       assign[assign$buffLockGrid_ID == theNext & !is.na(assign$buffLockGrid_ID),]$buffStatus <- 0
       assign[assign$buffLockGrid_ID == theNext & !is.na(assign$buffLockGrid_ID),]$buffUserID <- NA
       assign[assign$buffLockGrid_ID == theNext & !is.na(assign$buffLockGrid_ID),]$buffPartner <- NA
-      assign[assign$buffLockGrid_ID == theNext & !is.na(assign$buffLockGrid_ID),]$buffEndTime <- as.POSIXct(Sys.time(),tz="America/Denver",format="%Y%m%d %H%M%S")
+      assign[assign$buffLockGrid_ID == theNext & !is.na(assign$buffLockGrid_ID),]$buffEndTime <- as.POSIXlt(Sys.time(),tz="America/Denver",format="%m/%d/%Y %H:%M")
       assign[assign$buffLockGrid_ID == theNext & !is.na(assign$buffLockGrid_ID),]$buffLockGrid_ID <- NA
+      
+      #   ---- Put these date fields back to character, so Excel doesn't get confused. 
+      assign$digiEndTime <- strftime(assign$digiEndTime,format="%m/%d/%Y %H:%M")
+      assign$buffEndTime <- strftime(assign$buffEndTime,format="%m/%d/%Y %H:%M")
       
       #   ---- The running versions. 
       vList <- dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus")
@@ -146,8 +183,12 @@ checkInCell <- function(theNext,userID){
       newVersion <- sprintf("%06d",(as.numeric(version) + 1))
       write.csv(assign,paste0("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus/tblCellStatus",newVersion,".csv"),row.names=FALSE)
       
-      #   ---- Remove the lock.  
-      file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+          file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+        }
+      }
       cat(paste0("\nThe status of your new cell has successfully been updated in tblCellStatus.csv.\n"))
       
       write.csv(assign,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",row.names=FALSE)
@@ -158,9 +199,11 @@ checkInCell <- function(theNext,userID){
       message("It appears you broke the function;  however, any lock originally set has been removed.\n")
       message("Determine the cause of failure, remedy, and then try again.  Ask for help if this result seems surprising.\n")
       
-      #   ---- Remove the lock.  
-      if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
-        file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+          invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
+        }
       }
       
       message("Here's the original error message:\n")

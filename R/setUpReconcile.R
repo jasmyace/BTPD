@@ -2,7 +2,7 @@
 #'   
 #' @title Set up files for reconciliation.
 
-setUpReconcile <- function(theNext){
+setUpReconcile <- function(theNext,userID){
   out <- tryCatch(
     {
       
@@ -52,7 +52,7 @@ setUpReconcile <- function(theNext){
       readCheckCellValidity <- function(Shp){
         out <- tryCatch(
           {
-            checkCellValidity(Shp)
+            checkCellValidity(Shp,userID)
           },
             warning = function(cond){
               return(1)

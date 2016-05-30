@@ -30,10 +30,11 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       
       #   ---- Get the current list of who has what.  
       assign <- getCellStatus()
-      assign$digiStartTime <- as.POSIXlt(assign$digiStartTime,tz="America/Denver")
-      assign$digiEndTime <- as.POSIXlt(assign$digiEndTime,tz="America/Denver")  
-      assign$buffStartTime <- as.POSIXlt(assign$buffStartTime,tz="America/Denver")
-      assign$buffEndTime <- as.POSIXlt(assign$buffEndTime,tz="America/Denver")
+
+      assign$digiStartTime <- as.POSIXlt(strptime(assign$digiStartTime,format="%m/%d/%Y %H:%M"),tz="America/Denver")
+      assign$digiEndTime <- as.POSIXlt(strptime(assign$digiEndTime,format="%m/%d/%Y %H:%M"),tz="America/Denver")  
+      assign$buffStartTime <- as.POSIXlt(strptime(assign$buffStartTime,format="%m/%d/%Y %H:%M"),tz="America/Denver")
+      assign$buffEndTime <- as.POSIXlt(strptime(assign$buffEndTime,format="%m/%d/%Y %H:%M"),tz="America/Denver")
   
       anyOpen <- assign[assign$digiStatus == 1 & assign$digiUser == userID & assign$digiPartner == 998,]
       if(nrow(anyOpen) > 0){
@@ -186,9 +187,9 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             }
         
             #   ---- Update the time records.  At the least, we don't want endTimes that are before startTimes.
-            assign[assign$Grid_ID == theNext,]$digiStartTime <- as.POSIXct(Sys.time(),tz="America/Denver")
-            assign[assign$Grid_ID == theNext,]$digiEndTime <- as.POSIXct(Sys.time(),tz="America/Denver")
-            
+            assign[assign$Grid_ID == theNext,]$digiStartTime <- as.POSIXlt(Sys.time(),format="%m/%d/%Y %H:%M",tz="America/Denver")
+            assign[assign$Grid_ID == theNext,]$digiEndTime <- as.POSIXlt(Sys.time(),format="%m/%d/%Y %H:%M",tz="America/Denver")
+
             #   ---- Need to see if we have shapefiles with no features. This happens often.  
             checkShp <- function(folder,shp){                                                                 
               if(is.null(tryCatch(readOGR(folder,shp,verbose=FALSE), warning = function(w) w)$message)){
@@ -208,8 +209,8 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
               assign[assign$Grid_ID == bufGrid_ID,]$buffLockGrid_ID <- theNext
               assign[assign$Grid_ID == bufGrid_ID,]$buffUserID <- userID
               assign[assign$Grid_ID == bufGrid_ID,]$buffPartner <- partner
-              assign[assign$Grid_ID == bufGrid_ID,]$buffStartTime <- as.POSIXct(Sys.time(),tz="America/Denver")
-              assign[assign$Grid_ID == bufGrid_ID,]$buffEndTime <- as.POSIXct(Sys.time(),tz="America/Denver")
+              assign[assign$Grid_ID == bufGrid_ID,]$buffStartTime <- as.POSIXlt(Sys.time(),format="%m/%d/%Y %H:%M",tz="America/Denver")
+              assign[assign$Grid_ID == bufGrid_ID,]$buffEndTime <- as.POSIXlt(Sys.time(),format="%m/%d/%Y %H:%M",tz="America/Denver")
               
               #   ---- Compile all town shapefiles from neighbors of the locking Grid_ID
               #   ---- and place in the folder so digitizer knows they are there.  
@@ -276,8 +277,10 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             #   ---- by neighboring cells in the buffer of the cell of interest,
             #   ---- excluding any towns with a higher BAS number.  Save it.
             otherTowns <- 0
+            #otherTownsp <- 0
             if(!is.null(allShps)){  # nrow(allShps@data) > 0
               writeOGR(allShps,paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",theFolder$Range,"/",theNext),paste0("LocalTowns_",theNext),overwrite_layer=TRUE,driver="ESRI Shapefile")
+              #otherTownsp <- gArea()
               otherTowns <- 1
             }
             
@@ -373,7 +376,11 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             ring <- AddHoleToPolygon(outCircle,inCircle)
             
             plot(ring,add=TRUE,col="red",border="red")
-            plot(shpBuf,add=TRUE,col="#a6d96a",border="white")
+            
+            #   ---- Now, plot the buffer of our new cell.  But NOT where we have already plotted
+            #   ---- a closed cell.  We want to exclude these!
+            dontPlot <- assign[assign$doneStatus == 1 & !is.na(assign$doneStatus),]$Grid_ID
+            plot(shpBuf[!(shpBuf@data$Grid_ID %in% dontPlot),],add=TRUE,col="#a6d96a",border="white")
             
             mtext(side=3,line=-0.75,"Your newly checked-out cell is circled in red.")
           
@@ -388,6 +395,13 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
         } #   ---- Close the repeat.
     
       }  #   ---- Close the if.
+      
+      
+      #   ---- Put these date fields back to character, so Excel doesn't get confused. 
+      assign$digiStartTime <- strftime(assign$digiStartTime,format="%m/%d/%Y %H:%M")
+      assign$digiEndTime <- strftime(assign$digiEndTime,format="%m/%d/%Y %H:%M")
+      assign$buffStartTime <- strftime(assign$buffStartTime,format="%m/%d/%Y %H:%M")
+      assign$buffEndTime <- strftime(assign$buffEndTime,format="%m/%d/%Y %H:%M")
   
       #   ---- Organize stuff for next steps.  
       write.csv(assign,paste0("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/",userID,"/tblCellStatusTMP.csv"),row.names=FALSE)

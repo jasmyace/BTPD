@@ -27,7 +27,7 @@ getStatus <- function(userID,plotOnly=FALSE){
   doubly <- assign[( ( assign$digiUserID %in% userID  & !is.na(assign$digiUserID ) ) |
                      ( assign$digiPartner %in% userID & !is.na(assign$digiPartner) ) ) & assign$openStatus == 0 & assign$digiDouble == 1 & !is.na(assign$digiDouble),]
   buffer <- assign[assign$buffUserID %in% userID & !is.na(assign$buffUserID),]
-  closed <- assign[assign$digiUserID %in% userID & !is.na(assign$digiUserID) & assign$doneStatus == 1,]
+  closed <- assign[assign$digiUserID %in% userID & !is.na(assign$digiUserID) & assign$doneStatus == 1 & !is.na(assign$doneStatus),]
   
   #   ---- Manipulate the results of querying into a useful form.
   singly <- data.frame(Grid_ID=singly[,c('Grid_ID')])
@@ -117,16 +117,15 @@ getStatus <- function(userID,plotOnly=FALSE){
     cat(paste0(firstName," has nothing to report.  The Cells map will be blank."))
   }
 
-  
   grid@data[is.na(grid@data)] <- 0
- 
+
   #   ---- Make a simple plot. 
   par(mar=c(0.5,0.5,2.0,0.5))
   plot(grid,main=paste0(firstName,"'s Cells"),col="gray90",border="white")
+  plot(grid[grid@data$buffer == 1,],col="#a6d96a",border="white",add=TRUE)   # blue
   plot(grid[grid@data$singly == 1,],col="#d7191c",border="white",add=TRUE)   # yellow
   plot(grid[grid@data$doubly == 1,],col="#fdae61",border="white",add=TRUE)    # red
   plot(grid[grid@data$doubly == 2,],col="#ffffbf",border="white",add=TRUE)     # orange
-  plot(grid[grid@data$buffer == 1,],col="#a6d96a",border="white",add=TRUE)   # blue
   plot(grid[grid@data$closed == 1,],col="#1a9641",border="white",add=TRUE)   # green3
   legend("bottomleft",c('Open','Singly','Doubly -- Primary','Doubly -- Secondary','Buffer','Closed'),border=rep("white",4),fill=c("gray90","#d7191c","#fdae61","#ffffbf","#a6d96a","#1a9641"),cex=0.6)
   

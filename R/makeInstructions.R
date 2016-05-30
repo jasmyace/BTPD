@@ -137,7 +137,7 @@ options(useFancyQuotes=TRUE)
   cat(paste0("     create a reconciling .mxd file.  To do this, primary digitizer ",thepFirstName," needs to\n"),sep="",append=TRUE,file=log_con)
   cat(paste0("     submit the following to the R Console window.\n\n"),sep="",append=TRUE,file=log_con)
 
-  cat(paste0("               setUpReconcile('",theNext,"')\n\n"),sep="",append=TRUE,file=log_con)
+  cat(paste0("               setUpReconcile('",theNext,"',",userID,")\n\n"),sep="",append=TRUE,file=log_con)
   
   cat(paste0("     If both digitizers found no towns, jump directly to step 9.\n\n"),sep="",append=TRUE,file=log_con)
 
@@ -149,7 +149,7 @@ options(useFancyQuotes=TRUE)
   cat(paste0("  8. When complete, check for town digitizing errors in the new reconciling shapefile.\n"),sep="",append=TRUE,file=log_con)
   cat(paste0("     Submit the following to the R Console window.  Resubmit until no errors remain.\n\n"),sep="",append=TRUE,file=log_con)
   
-  cat(paste0("               checkCellValidity('reconciling_Towns_",theNext,"')\n\n"),sep="",append=TRUE,file=log_con)
+  cat(paste0("               checkCellValidity('reconciling_Towns_",theNext,"',",userID,")\n\n"),sep="",append=TRUE,file=log_con)
   
   cat(paste0("  9. At this point, digitizing of this cell is complete. Check in this cell before \n"),sep="",append=TRUE,file=log_con)
   cat(paste0("     obtaining your next.  To do that, submit the following to the R Console window.\n\n"),sep="",append=TRUE,file=log_con)

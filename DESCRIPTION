@@ -1,8 +1,8 @@
 Package: pDog
 Type: Package
 Title: pDog Management Functions
-Version: 0.3
-Date: 2016-05-21
+Version: 0.5
+Date: 2016-05-27
 Author: Jason Mitchell
 Maintainer: Jason Mitchell <jmitchell@west-inc.com>
 Description: Manage the digitizing of habitat of black-tailed prairie-dog towns via shapefile technology.
