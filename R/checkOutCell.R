@@ -14,7 +14,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
         lockdf <- data.frame(userID=userID)
         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
       } else {
-        stop("Something is really wrong")
+        stop("Something is really wrong.\n")
       }
       
   out <- tryCatch(

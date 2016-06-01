@@ -29,7 +29,7 @@ checkCellValidity <- function(shp,userID){
     lockdf <- data.frame(userID=userID)
     write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
   } else {
-    stop("Something is really wrong")
+    stop("Something is really wrong.\n")
   }
       
   proj3857  <- "+init=epsg:3857"   # used by esri online naip imagery.  
