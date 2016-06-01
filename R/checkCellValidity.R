@@ -20,14 +20,16 @@ checkCellValidity <- function(shp,userID){
   }
   
   #   ---- Check for a lock on table tblCellStatus.csv
-  lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
-  if(length(lock) > 0){
+  lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+  if(lock == TRUE){
     stop("The function is currently locked;  try again in a minute.")
-  } else {
+  } else if(lock == FALSE){
     #   ---- Lock the table tblCellStatus so that two users cannot update
     #   ---- it at the same time. 
     lockdf <- data.frame(userID=userID)
     write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+  } else {
+    stop("Something is really wrong")
   }
       
   proj3857  <- "+init=epsg:3857"   # used by esri online naip imagery.  
@@ -58,7 +60,7 @@ checkCellValidity <- function(shp,userID){
   
   #   ---- Get the shapefile to check.
   shpfile <- checkShp(shpDir,shp)
-  localGrid <- readOGR(shpDir,paste0("LocalGrid_",Grid_ID),verbose=FALSE)
+  localGrid <- checkShp(shpDir,paste0("LocalGrid_",Grid_ID))
  
   #   ---- If the shapefile has no features, there is nothing to check. 
   if( !(class(shpfile) == "SpatialPolygonsDataFrame") ){
@@ -69,12 +71,23 @@ checkCellValidity <- function(shp,userID){
         
     #   ---- Convert the line shapefile we read in into a 
     #   ---- polygonal one -- necessary for g functions.
-    localGridp <- as(localGrid,"SpatialPoints")
-    c1 <- localGridp@coords
-    P1 = Polygon(c1)
-    Ps1 = Polygons(list(P1), ID="a")
-    theCell = SpatialPolygons(list(Ps1))
-    theCell@proj4string <- shpfile@proj4string
+    if( class(localGrid) == "SpatialLinesDataFrame" ){
+      localGridp <- as(localGrid,"SpatialPoints")
+      c1 <- localGridp@coords
+      P1 = Polygon(c1)
+      Ps1 = Polygons(list(P1), ID="a")
+      theCell = SpatialPolygons(list(Ps1))
+      theCell@proj4string <- shpfile@proj4string
+    } else {
+      
+      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+          file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+        }
+      }
+      stop("The shapefile LocalGrid_",Grid_ID," lost its features.  Recreate and try again.")
+    }
         
     grid <- readOGR("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked","BTPD_Grid_CO_Ranked",verbose=FALSE)
     grid <- as(grid,"SpatialLinesDataFrame")

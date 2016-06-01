@@ -4,25 +4,39 @@
 
 
 checkInCell <- function(theNext,userID){
-  out <- tryCatch(
-    {
-      
+       
       # theNext <- "CO119106"
       # userID <- 100
       
+#       #   ---- Check for a lock on table tblCellStatus.csv
+#       lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
+#       if(length(lock) > 0){
+#         stop("The function is currently locked;  try again in a minute.")
+#       } else {
+#         #   ---- Lock the table tblCellStatus so that two users cannot update
+#         #   ---- it at the same time. 
+#         lockdf <- data.frame(userID=userID)
+#         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+#       }
+      
       #   ---- Check for a lock on table tblCellStatus.csv
-      lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
-      if(length(lock) > 0){
+      lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+      if(lock == TRUE){
         stop("The function is currently locked;  try again in a minute.")
-      } else {
+      } else if(lock == FALSE){
         #   ---- Lock the table tblCellStatus so that two users cannot update
         #   ---- it at the same time. 
         lockdf <- data.frame(userID=userID)
         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+      } else {
+        stop("Something is really wrong")
       }
-  
+      
+  out <- tryCatch(
+    {
+          
       assign <- read.csv("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",as.is = TRUE)
-      if( assign[assign$Grid_ID == theNext,]$open == 1 | assign[assign$Grid_ID == theNext,]$doneStatus == 1 ){
+      if( assign[assign$Grid_ID == theNext,]$digiUserID == userID & (assign[assign$Grid_ID == theNext,]$open == 1 | assign[assign$Grid_ID == theNext,]$doneStatus == 1) ){
         
         #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
         if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){

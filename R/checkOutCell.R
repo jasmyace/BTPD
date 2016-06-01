@@ -3,19 +3,22 @@
 #' @title Check out a cell.
 
 checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing"){
-  out <- tryCatch(
-    {
+
       #   ---- Check for a lock on table tblCellStatus.csv
-      lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
-      if(length(lock) > 0){
+      lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+      if(lock == TRUE){
         stop("The function is currently locked;  try again in a minute.")
-      } else {
+      } else if(lock == FALSE){
         #   ---- Lock the table tblCellStatus so that two users cannot update
         #   ---- it at the same time. 
         lockdf <- data.frame(userID=userID)
         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+      } else {
+        stop("Something is really wrong")
       }
-  
+      
+  out <- tryCatch(
+    {  
       #   ---- Define useful projections.  
       projAEAc  <- '+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0'
       
@@ -423,9 +426,11 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       message("It appears you broke the function;  however, any lock originally set has been removed.\n")
       message("Determine the cause of failure, remedy, and then try again.  Ask for help if this result seems surprising.\n")
       
-      #   ---- Remove the lock.  
-      if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
-        file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+          invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
+        }
       }
       
       message("Here's the original error message:\n")
