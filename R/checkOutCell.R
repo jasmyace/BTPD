@@ -1,4 +1,4 @@
-#' @export checkOutCell2
+#' @export checkOutCell
 #'   
 #' @title Check out a cell.
 
@@ -149,9 +149,6 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             
             #   ---- Get a partner for reconciling.
             if(double == 1){
-              
-              assign[assign$Grid_ID == theNext,]$digiSingle <- 0
-              assign[assign$Grid_ID == theNext,]$digiDouble <- 1
           
               #   ---- The function sample is weird when you only want one.  So go a different route.
               partnerValid <- tblNames[tblNames$doubleActive == 1 & tblNames$userID != userID,]
@@ -159,30 +156,71 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 stop("Possibly only one digitizer is active for partnering.  Investigate.")
               }
               
-              #   ---- We need to be smart about assigning primary vs. secondary.  
-              #   ---- Get the distribution so far in the project, and assign the 
-              #   ---- roles based on who needs what, so as to force a balance.  
-              #   ---- Note I don't restrict to done...could have half-done cells
-              #   ---- that have been assigned, but not yet reconciled.  
-              #   ---- Need to consider partnerValid list as well.  
-              #   ---- HOLD UNTIL I HAVE SOME DATA TO TINKER WITH.  5/19/2016.
-              #doubSoFar <- assign[assign$digiDouble == 1,]
-              #table(done$digiUserID,done$digiPrimary)
+              #   ---- Update the record set with the fact this is a doubly cell.  
+              assign[assign$Grid_ID == theNext,]$digiSingle <- 0
+              assign[assign$Grid_ID == theNext,]$digiDouble <- 1
               
-              #   ---- Assign partner and primary randomly at same time, i.e., 2-way?
-              partnerValid$randUni <- runif(nrow(partnerValid))
-              partner <- partnerValid[1,]$userID 
+              #   ---- The doublyMethod variable identifies how partners are to be found for doubly
+              #   ---- digitized cells.  doublyMethod == 1 means that the digitizer pulling the 
+              #   ---- the cell (so the userID) is always primary, and secondary is simply 
+              #   ---- randmoly selected from the list of doubly digitizers available.  doublyMethod 
+              #   ---- == 2 means that we call function balanceAssign.R, which tries to be smart
+              #   ---- in how it maintains a balance between primary and secondary, along with 
+              #   ---- the set of available digitizers.  
               
-              assign[assign$Grid_ID == theNext,]$digiPartner <- partner
-              sFirstName <- as.character(droplevels(tblNames[tblNames$userID == partner,]$FirstName))
+              #   ---- Set the method to use for assigning doubly partners.  
+              doublyMethod <- 2
+              
+              if(doublyMethod == 1){
+
+                
+                #   ---- We need to be smart about assigning primary vs. secondary.  
+                #   ---- Get the distribution so far in the project, and assign the 
+                #   ---- roles based on who needs what, so as to force a balance.  
+                #   ---- Note I don't restrict to done...could have half-done cells
+                #   ---- that have been assigned, but not yet reconciled.  
+                #   ---- Need to consider partnerValid list as well.  
+                #   ---- HOLD UNTIL I HAVE SOME DATA TO TINKER WITH.  5/19/2016.
+                #doubSoFar <- assign[assign$digiDouble == 1,]
+                #table(done$digiUserID,done$digiPrimary)
+              
+                #   ---- Assign partner and primary randomly at same time, i.e., 2-way?
+                partnerValid$randUni <- runif(nrow(partnerValid))
+                partner <- partnerValid[1,]$userID 
+              
+                assign[assign$Grid_ID == theNext,]$digiPartner <- partner
+                sFirstName <- as.character(droplevels(tblNames[tblNames$userID == partner,]$FirstName))
           
-              #   ---- TEMPORARY -- assign the person calling the function 
-              #   ---- primary, and the partner brought in secondary.  
-              assign[assign$Grid_ID == theNext,]$digiPrimary <- userID
-              assign[assign$Grid_ID == theNext,]$digiSecondary <- partner
+                #   ---- Method 1:  assign the person calling the function 
+                #   ---- primary, and the partner brought in secondary.  
+                assign[assign$Grid_ID == theNext,]$digiPrimary <- userID
+                assign[assign$Grid_ID == theNext,]$digiSecondary <- partner
               
-              #   ---- Note we may need to swith pFirstName and sFirstName following
-              #   ---- the development of an assignment mechanism for the above.  
+              } else if(doublyMethod == 2){
+                
+                #   ---- Note that we already check for at least two digitizers above.  
+                assignInfo <- tryCatch(
+                  {
+                    balanceAssign(userID,assign,tblNames)
+                  },
+                  error=function(condAI){
+                    message("Something is wrong with the balanceAssign function.  Investigate.\n")
+                    message("Here's the original error message:\n")
+                    message(cond)
+                    # Choose a return value in case of error
+                    return(NA)
+                  }
+                )
+                
+                #   ---- Method 2:  assign Primary and Secondary based on balancing.  
+                if( assignInfo$userIDAssign == "Primary" ){
+                  assign[assign$Grid_ID == theNext,]$digiPrimary <- assignInfo$userID
+                  assign[assign$Grid_ID == theNext,]$digiSecondary <- assignInfo$thePartnerAssign
+                } else {
+                  assign[assign$Grid_ID == theNext,]$digiPrimary <- assignInfo$thePartnerAssign
+                  assign[assign$Grid_ID == theNext,]$digiSecondary <- assignInfo$userID              
+                }
+              }
               
             } else {
               partner <- 998

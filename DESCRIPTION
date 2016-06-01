@@ -1,7 +1,7 @@
 Package: pDog
 Type: Package
 Title: pDog Management Functions
-Version: 0.5
+Version: 0.8
 Date: 2016-05-27
 Author: Jason Mitchell
 Maintainer: Jason Mitchell <jmitchell@west-inc.com>

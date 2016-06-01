@@ -1,4 +1,4 @@
-#' @export checkInCell2
+#' @export checkInCell
 #'   
 #' @title Check in a cell when complete.
 

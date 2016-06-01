@@ -4,6 +4,6 @@
 \alias{setUpReconcile}
 \title{Set up files for reconciliation.}
 \usage{
-setUpReconcile(theNext)
+setUpReconcile(theNext, userID)
 }
 

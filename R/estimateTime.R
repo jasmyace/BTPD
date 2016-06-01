@@ -1,5 +1,7 @@
 estimateTime <- function(shp){
   
+  # shp <- CO
+  
   #   ---- Get folder structure.  
   tblFolders <- getFolderStatus()
   
@@ -14,10 +16,11 @@ estimateTime <- function(shp){
   tblRanks <- tblRanks[order(tblRanks$sampleID),]
   
   #   ---- Calculate elapsed time spent while digitizing.
-  done <- assign[assign$doneStatus == 1,c('Grid_ID','digiUserID','digiPartner','digiDouble','digiStartTime','digiEndTime')]
-  done$digiStartTime <- as.POSIXct(done$digiStartTime,tz="America/Denver")
-  done$digiEndTime <- as.POSIXct(done$digiEndTime,tz="America/Denver")  
-  done$time <- done$digiEndTime - done$digiStartTime
+  done <- assign[assign$doneStatus == 1,c('Grid_ID','digiUserID','digiPartner','digiDouble','digiStartTime','digiEndTime','jErrStatus')]
+  done$digiStartTime <- as.POSIXct(done$digiStartTime,format="%m/%d/%Y %H:%M",tz="America/Denver")
+  done$digiEndTime <- as.POSIXct(done$digiEndTime,format="%m/%d/%Y %H:%M",tz="America/Denver")  
+  done$time <- as.numeric(done$digiEndTime - done$digiStartTime) / 60
+  done <- done[done$jErrStatus == 0,]
 
   #   ---- Count the number of towns per cell.  
   towns <- data.frame(nTowns=tapply(shp@data$Town_ID,factor(shp@data$Grid_ID),function(x) length(x)))
@@ -62,5 +65,24 @@ estimateTime <- function(shp){
   totHours <- sum(townCounts$totMins) / 60 
   
   plot(factor(singly$nTowns),as.numeric(singly$time))
+  
+  
+  #   ---- Person-based.  How many cells are people doing in a work day?
+  singly <- done[done$digiDouble == 0,]
+  
+  #   ---- Note that I build each day by 24 hours.  This won't work if we straddle a time change.  
+  dayLabels <- unique(strftime(as.POSIXlt(singly$digiEndTime),format="%D"))
+  dayLabels <- c(dayLabels[order(dayLabels)],"Total")
+  
+  singly$jDay <- as.numeric(floor(julian(as.POSIXlt(singly$digiEndTime),origin=as.POSIXct("2016-05-21",tz="America/Denver"))) + 1)
+  
+
+  
+  
+  counts <- as.matrix(table(singly$digiUserID,singly$jDay))
+  counts <- cbind(counts,rowSums(counts))
+  counts <- rbind(counts,colSums(counts))
+  colnames(counts) <- dayLabels
+
   
 }
