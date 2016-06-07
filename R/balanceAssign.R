@@ -1,45 +1,19 @@
 
 balanceAssign <- function(userID,assign,tblNames){
-
-#   #   ---- Get the information up to this point.  
-#   assign <- getCellStatus()
   
   #   ---- Restrict to the doubly assigned.  We use these to get frequencies
   #   ---- of what's been done so far.  
   doubles <- assign[ !is.na(assign$digiDouble) & assign$digiDouble == 1,]
-  
+ 
   #   ---- Identify the unique users up to this point.  
   theUsers <- unique(c(doubles$digiPrimary,doubles$digiSecondary))
-  
+ 
   #   ---- Identify the options of assigning a partner.  
   # tblNames <- checkUser(userID)
   theDoublyActives <- c(tblNames[tblNames$doubleActive == 1 & tblNames$userID != userID,]$userID)
 
   if( userID %in% theUsers ){
     
-
-# #   ---- Example.
-# r1 <- c(219,100)
-# r2 <- c(219,100)
-# r3 <- c(219,100)
-# r4 <- c(219,100)
-# r5 <- c(100,219)
-# r6 <- c(100,219)
-# r7 <- c(100,219)
-# r8 <- c(100,655)
-# r9 <- c(100,655)
-# r10 <- c(655,100)
-# r11 <- c(100,655)
-# r12 <- c(100,655)
-# r13 <- c(219,655)
-# r14 <- c(655,219)
-# r15 <- c(655,219)
-# 
-# dat <- data.frame(rbind(r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15))
-# colnames(dat) <- c('digiPrimary','digiSecondary')
-# rownames(dat) <- NULL
-# doubles <- dat
-
     #   ---- Count up the unique instances of users.  Call it 'Dim' since it forms
     #   ---- a square matrix, c.f. the table called below, prior to being pushed 
     #   ---- into a data frame.  

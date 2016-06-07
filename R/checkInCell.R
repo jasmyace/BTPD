@@ -5,8 +5,8 @@
 
 checkInCell <- function(theNext,userID){
        
-      # theNext <- "CO119106"
-      # userID <- 100
+      # theNext <- "CO158816"
+      # userID <- 764
       
 #       #   ---- Check for a lock on table tblCellStatus.csv
 #       lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
@@ -36,6 +36,7 @@ checkInCell <- function(theNext,userID){
     {
           
       assign <- read.csv("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",as.is = TRUE)
+      #assign <- read.csv("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus/tblCellStatus001588.csv",as.is = TRUE)
       if( assign[assign$Grid_ID == theNext,]$digiUserID == userID & (assign[assign$Grid_ID == theNext,]$open == 1 | assign[assign$Grid_ID == theNext,]$doneStatus == 1) ){
         
         #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
@@ -94,7 +95,8 @@ checkInCell <- function(theNext,userID){
       
       pInd <- substr(files,1,1) == 'p' & 
         substr(files,nchar(files) - 3,nchar(files)) == ".shp" &
-        grepl("Towns",files,fixed=TRUE)
+        grepl("Towns",files,fixed=TRUE) &
+        !grepl("Copy",files,fixed=TRUE)
       
       pShpC <- substr(files[pInd],1,nchar(files[pInd]) - 4)
       
@@ -197,16 +199,16 @@ checkInCell <- function(theNext,userID){
       newVersion <- sprintf("%06d",(as.numeric(version) + 1))
       write.csv(assign,paste0("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus/tblCellStatus",newVersion,".csv"),row.names=FALSE)
       
+      write.csv(assign,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",row.names=FALSE)
+      
       #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
       if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
         if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
           file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
         }
       }
+      
       cat(paste0("\nThe status of your new cell has successfully been updated in tblCellStatus.csv.\n"))
-      
-      write.csv(assign,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",row.names=FALSE)
-      
       cat(paste0("Cell ",theNext," is now checked in.  Feel free to start digitizing another.\n"))
     },
     error=function(cond){

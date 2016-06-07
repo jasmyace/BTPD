@@ -108,7 +108,8 @@ getStatus <- function(userID,plotOnly=FALSE){
       if(nrow(closed) == 1){
         cat(paste0(firstName,"'s list of closed cells includes Grid_ID ",closed$Grid_ID[1],".\n"))
       } else {
-        cat(paste0(firstName,"'s list of closed cells includes Grid_IDs ",paste0(closed$Grid_ID,collapse=", "),".\n"))
+        #cat(paste0(firstName,"'s list of closed cells includes Grid_IDs ",paste0(closed$Grid_ID,collapse=", "),".\n"))
+        cat(paste0(firstName,"'s list of closed cells includes ",length(closed$Grid_ID)," Grid_IDs.\n"))
       }
     }
   }

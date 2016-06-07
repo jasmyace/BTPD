@@ -33,7 +33,8 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       
       #   ---- Get the current list of who has what.  
       assign <- getCellStatus()
-
+      #assign <- read.csv("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus/tblCellStatus001589.csv",as.is = TRUE)
+      
       assign$digiStartTime <- as.POSIXlt(strptime(assign$digiStartTime,format="%m/%d/%Y %H:%M"),tz="America/Denver")
       assign$digiEndTime <- as.POSIXlt(strptime(assign$digiEndTime,format="%m/%d/%Y %H:%M"),tz="America/Denver")  
       assign$buffStartTime <- as.POSIXlt(strptime(assign$buffStartTime,format="%m/%d/%Y %H:%M"),tz="America/Denver")
@@ -53,9 +54,9 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       master <- master[order(master$digiStatus,master$sampleID),]
       
       #   ---- A safeguard to ensure we have all 11,101 records.
-      nTotal <- nrow(master)
+      nTotal <- nrow(assign)
       if( !(nTotal == 11101) ){
-        warning("Creation of data frame master does not have the correct number of records.  Investigate")
+        warning("Creation of data frame assign does not have the correct number of records.  Disaster!!!  Investigate.\n")
         stop
       }
       
@@ -156,10 +157,6 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 stop("Possibly only one digitizer is active for partnering.  Investigate.")
               }
               
-              #   ---- Update the record set with the fact this is a doubly cell.  
-              assign[assign$Grid_ID == theNext,]$digiSingle <- 0
-              assign[assign$Grid_ID == theNext,]$digiDouble <- 1
-              
               #   ---- The doublyMethod variable identifies how partners are to be found for doubly
               #   ---- digitized cells.  doublyMethod == 1 means that the digitizer pulling the 
               #   ---- the cell (so the userID) is always primary, and secondary is simply 
@@ -201,12 +198,12 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 #   ---- Note that we already check for at least two digitizers above.  
                 assignInfo <- tryCatch(
                   {
-                    balanceAssign(userID,assign,tblNames)
+                    balanceAssign(userID,assign=assign,tblNames=tblNames)
                   },
                   error=function(condAI){
                     message("Something is wrong with the balanceAssign function.  Investigate.\n")
                     message("Here's the original error message:\n")
-                    message(cond)
+                    message(condAI)
                     # Choose a return value in case of error
                     return(NA)
                   }
@@ -216,11 +213,32 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 if( assignInfo$userIDAssign == "Primary" ){
                   assign[assign$Grid_ID == theNext,]$digiPrimary <- assignInfo$userID
                   assign[assign$Grid_ID == theNext,]$digiSecondary <- assignInfo$thePartnerAssign
+                  
+                  #   ---- We may have swapped which names go with which role:  primary and 
+                  #   ---- secondary.  Set this explicitly to be sure.
+                  pFirstName <- as.character(droplevels(tblNames[tblNames$userID == assignInfo$userID,]$FirstName))
+                  sFirstName <- as.character(droplevels(tblNames[tblNames$userID == assignInfo$thePartnerAssign,]$FirstName))
                 } else {
                   assign[assign$Grid_ID == theNext,]$digiPrimary <- assignInfo$thePartnerAssign
-                  assign[assign$Grid_ID == theNext,]$digiSecondary <- assignInfo$userID              
+                  assign[assign$Grid_ID == theNext,]$digiSecondary <- assignInfo$userID      
+                  
+                  #   ---- We may have swapped which names go with which role:  primary and 
+                  #   ---- secondary.  Set this explicitly to be sure.  
+                  pFirstName <- as.character(droplevels(tblNames[tblNames$userID == assignInfo$thePartnerAssign,]$FirstName))
+                  sFirstName <- as.character(droplevels(tblNames[tblNames$userID == assignInfo$userID,]$FirstName))
                 }
               }
+              
+              #   ---- Update the record set with the fact this is a doubly cell.  Do this after the
+              #   ---- fact, since we use assign in doublyMethod == 2.
+              assign[assign$Grid_ID == theNext,]$digiSingle <- 0
+              assign[assign$Grid_ID == theNext,]$digiDouble <- 1
+              
+              theTwoDigis <- c(assignInfo$userID,assignInfo$thePartnerAssign)
+              partner <- theTwoDigis[theTwoDigis != userID]
+              assign[assign$Grid_ID == theNext,]$digiPartner <- partner
+              
+
               
             } else {
               partner <- 998
@@ -260,7 +278,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
               bufFolder <- paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",bufRange,"/",bufGrid_ID,"/") 
               bufDone <- assign[assign$Grid_ID == bufGrid_ID,]$doneStatus
               
-              #   ---- Find out if the neighboring buffefing cell was singly or 
+              #   ---- Find out if the neighboring buffering cell was singly or 
               #   ---- doubly digitized.  This tells us which shapefile actually
               #   ---- holds the towns we care about.  
               bufBASN <- ranks[ranks$Grid_ID == bufGrid_ID,]$sampleID
@@ -300,16 +318,16 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 if(triggered == 0){
                   first <- 1
                 }
-                if(first == 1){                                                                                                                                                                                  # for 1st shp file, do this
-                  uidR          <- 1                                                                                                                                                               # make a unique id
-                  allShps       <- spChFIDs(townShps[[j]], as.character(uidR:(uidR + nR - 1)))                                                                                                    # make feature id of polygons unique
+                if(first == 1){
+                  uidR          <- 1
+                  allShps       <- spChFIDs(townShps[[j]], as.character(uidR:(uidR + nR - 1)))
                   uidR          <- uidR + nR
                   triggered     <- 1
                   first         <- 0
-                } else {                                                                                                                                                                                  # for other than 1st shp file, do this
-                  townShps[[j]] <- spChFIDs(townShps[[j]], as.character(uidR:(uidR + nR - 1)))                                                                                                    # make feature id of polygons unique
-                  uidR          <- uidR + nR                                                                                                                                              # make unique id for all polys
-                  allShps       <- spRbind(allShps,townShps[[j]])                                                                                                                                  # union ith shp file with all previous ones
+                } else {
+                  townShps[[j]] <- spChFIDs(townShps[[j]], as.character(uidR:(uidR + nR - 1)))
+                  uidR          <- uidR + nR
+                  allShps       <- spRbind(allShps,townShps[[j]])
                 }   
               }
             }
@@ -407,8 +425,13 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
               plot(shpGID,add=TRUE,col="#d7191c",border="white")
             } else {
               
-              #   ---- Later add an if to deal with primary vs. secondary. 
-              plot(shpGID,add=TRUE,col="#fdae61",border="white")
+              #   ---- We have a double cell.  Color it for the userID calling the check-out.
+              if( assignInfo$userIDAssign == "Secondary"){
+                plot(shpGID,add=TRUE,col="#ffffbf",border="white")
+              } else {
+                plot(shpGID,add=TRUE,col="#fdae61",border="white")
+              }
+
             }
             
             outCircle <- gBuffer(gCentroid(shpGID),byid=TRUE,width=12000)
@@ -425,7 +448,6 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             
             mtext(side=3,line=-0.75,"Your newly checked-out cell is circled in red.")
           
-        
           } else {   
             #   ---- One of the 8 cells is locked.  
           }

@@ -1,6 +1,6 @@
 #' @export checkDoubles
 #'   
-#' @title Check out a cell.
+#' @title Check for primary and secondary balance.
 
 checkDoubles <- function(){
   

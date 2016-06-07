@@ -165,7 +165,7 @@ options(useFancyQuotes=TRUE)
   
   #   ---- Communicate to the checker-outer that he/she has a partner.  
   if( thesFirstName != 'No' ){
-    cat(paste0("This is a doubly sampled cell.  Your partner is ",thesFirstName,".\n"))
+    cat(paste0("This is a doubly sampled cell. ",thepFirstName," and ",thesFirstName," will doubly digitize and reconcile this cell.\n"))
   }
   
   #   ---- Open the folder for the user.  

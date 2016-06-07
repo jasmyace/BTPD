@@ -2,7 +2,7 @@
 % Please edit documentation in R/checkDoubles.R
 \name{checkDoubles}
 \alias{checkDoubles}
-\title{Check out a cell.}
+\title{Check for primary and secondary balance.}
 \usage{
 checkDoubles()
 }
