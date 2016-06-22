@@ -290,6 +290,11 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
               #   ---- Number town has been drawn that overlaps with the
               #   ---- current town of interest.  But the current cell
               #   ---- gets first dibs.  
+              
+              #   ---- Note that this process happens for all cells, even if 
+              #   ---- it's a double.  It's just easier to exclude the Local_Towns
+              #   ---- shapefile construction at the point of function writeOGR
+              #   ---- in the case of a doubly cell.  
               if(bufDone == 1){
                 bufUserID <- assign[assign$Grid_ID == bufGrid_ID,]$digiUserID
                 FirstName <- tblNames[tblNames$userID == bufUserID,]$FirstName
@@ -340,9 +345,8 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             #   ---- excluding any towns with a higher BAS number.  Save it.
             otherTowns <- 0
             #otherTownsp <- 0
-            if(!is.null(allShps)){  # nrow(allShps@data) > 0
+            if(!is.null(allShps) & double == 0){  
               writeOGR(allShps,paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",theFolder$Range,"/",theNext),paste0("LocalTowns_",theNext),overwrite_layer=TRUE,driver="ESRI Shapefile")
-              #otherTownsp <- gArea()
               otherTowns <- 1
             }
             
