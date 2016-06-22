@@ -5,8 +5,8 @@
 
 checkInCell <- function(theNext,userID){
        
-      # theNext <- "CO158816"
-      # userID <- 764
+      # theNext <- "CO120160"
+      # userID <- 100
       
 #       #   ---- Check for a lock on table tblCellStatus.csv
 #       lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
@@ -78,15 +78,20 @@ checkInCell <- function(theNext,userID){
     
         rShpC <- substr(files[rInd],1,nchar(files[rInd]) - 4)
         
-        if( is.na(rShpC) | is.na(sShpC) | is.null(sShpC) | is.null(rShpC) | length(sShpC) == 0 | length(rShpC) == 0 ){
+        #   ---- It could be neither primary nor secondary found a town, and the skipped the makeReconcile
+        #   ---- step, which is okay.  In that case, there is neither a reconcile shapefile nor text file.
+        if( length(rShpC) >= 1 ){
           
-          #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-          if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-            if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+          if( is.na(rShpC) | is.na(sShpC) | is.null(sShpC) | is.null(rShpC) | length(sShpC) == 0 | length(rShpC) == 0 ){
+          
+            #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+            if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+              if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+                file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+              }
             }
+            stop("The folder tied to the doubly sampled Grid_ID provided lacks the requisite 's' and 'reconciling' shapefiles.  Investigate.")
           }
-          stop("The folder tied to the doubly sampled Grid_ID provided lacks the requisite 's' and 'reconciling' shapefiles.  Investigate.")
         }
       } 
   
@@ -163,11 +168,28 @@ checkInCell <- function(theNext,userID){
       }
   
       pShpCCheck <- checkApply(pShpC)
-      
-      
-      
-      
       if( double == 1){sShpCCheck <- checkApply(sShpC)}
+      
+      #   ---- At this point, for double cells, it could be the user is jumping directly to checking in the 
+      #   ---- cell, without creating the reconciling mxd nor shapefile.  This is okay if there are no towns
+      #   ---- found by neither the primary nor secondary.  But, we need to put down a text file, so we know 
+      #   ---- that the cell is done, and that no towns was the final conclusion.  
+      
+      #   ---- Hopefully they just don't check in the cell without truly reconciling.  We don't really 
+      #   ---- check for that at this point.  
+      txtFileDir <- dir(paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",theRange,"/",theNext))
+      txtFileHere <- txtFileDir == paste0("reconciling_Towns_",theNext,".txt")
+      if( double == 1 & sum(txtFileHere) == 0 & class(pShp) != "SpatialPolygonsDataFrame" & class(sShp) != "SpatialPolygonsDataFrame" ){
+        
+        #   ---- Note that I don't call setUpReconcile...that throws a lock down.  What happens if somebody
+        #   ---- steals it in the middle of this function call?  Do I already have a lock?  Doesn't matter,
+        #   ---- I don't think.  
+        allShps <- data.frame(Recon_T_ID=character(),new1=character(),new2=character(),Recon_DIE=character())
+        names(allShps)[names(allShps) == "new1"] <- paste0(substr(pName,1,5),"_T_ID")
+        names(allShps)[names(allShps) == "new2"] <- paste0(substr(sName,1,5),"_T_ID")
+        
+        write.table(allShps,paste0("//lar-file-srv/Data/BTPD_2016/Digitizing/",theRange,"/",theNext,"/","reconciling_Towns_",theNext,".txt"),row.names=FALSE)
+      }
   
       #   ---- Update the tblCellStatus csv so that this cell is officially checked in.
       #   ---- The real deal version.  Note that we convert these columns to POSIX, which make 

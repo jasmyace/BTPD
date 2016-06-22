@@ -6,7 +6,7 @@
 checkCellValidity <- function(shp,userID){
 
   # shp <- "pJason_Towns_CO115329"#"sCarissa_Towns_CO156212"
-  # shp <- "pJeannette_Towns_CO142494"   userID <- 100
+  # shp <- "reconciling_Towns_CO120160"   userID <- 219
 
       
   #   ---- Because we also call checkCellValidity when we check in a cell, which itself calls
@@ -92,6 +92,8 @@ checkCellValidity <- function(shp,userID){
     grid <- readOGR("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/data/Shapefiles/BTPD_Grid_CO_Ranked","BTPD_Grid_CO_Ranked",verbose=FALSE)
     grid <- as(grid,"SpatialLinesDataFrame")
     
+    #   ---- Define what we mean by 'No' in the town shapefiles.
+    NO <- c("x","X"," x","x "," X","X "," x "," X ")
     
     checkA <- checkB <- checkC <- checkD <- checkE <- 0
     #   ---- Check for loop-the-loops, etc.  Project into the
@@ -147,9 +149,14 @@ checkCellValidity <- function(shp,userID){
     #   ---- Make sure towns don't overlap one another.  
     checkC <- tryCatch(
       {
-        gInts <- gIntersects(shpfile,shpfile,byid=TRUE)
-        nTowns <- nrow(shpfile@data)
-        
+        if(substr(shp,1,5) == "recon"){
+          gInts <- gIntersects(shpfile[!(shpfile@data$Recon_T_ID %in% NO),],shpfile[!(shpfile@data$Recon_T_ID %in% NO),],byid=TRUE)
+          nTowns <- nrow(shpfile@data[!(shpfile@data$Recon_T_ID %in% NO),])
+        } else {
+          gInts <- gIntersects(shpfile,shpfile,byid=TRUE)
+          nTowns <- nrow(shpfile@data)
+        }
+          
         if(sum(gInts) != nTowns){
           stop("This Grid_ID's set of towns has at least one town that overlaps another.  Investigate.\n")
         } else {
@@ -174,9 +181,11 @@ checkCellValidity <- function(shp,userID){
     checkD <- tryCatch(
       {
         if( substr(shp,1,5) == "recon" ) {
-          df <- data.frame(Town_ID=shpfile@data[order(shpfile@data$Recon_T_ID),])
+          df <- shpfile@data
+          df <- df[!(df$Recon_T_ID %in% NO),]
+          df <- df[order(df$Recon_T_ID),]
           if( sum(df$Recon_T_ID == 0) > 0 ){
-            stop("This Grid_ID's set of towns has at least one Town_ID labeled with a zero.  Investigate.\n")
+            stop("This Grid_ID's set of towns has at least one Recon_T_ID labeled with a zero.  Investigate.\n")
           } else {
             checkD <- 0
           }
@@ -207,10 +216,12 @@ checkCellValidity <- function(shp,userID){
     checkE <- tryCatch(
       {
         if( substr(shp,1,5) == "recon" ){
-          df <- data.frame(Recon_T_ID=shpfile@data[order(shpfile@data$Recon_T_ID),c('Recon_T_ID')])
+          df <- shpfile@data
+          df <- df[!(df$Recon_T_ID %in% NO),]
+          df <- df[order(df$Recon_T_ID),]
           df$seq <- seq(1,nTowns,1)
           if(df[nTowns,]$Recon_T_ID != df[nTowns,]$seq){
-            stop("This Grid_ID's set of towns has poor Town_ID numbering.  Investigate variable Recon_T_ID.\n")
+            stop("This Grid_ID's set of towns has poor Recon_T_ID numbering.  Investigate variable Recon_T_ID.\n")
           } else {
             checkE <- 0
           }

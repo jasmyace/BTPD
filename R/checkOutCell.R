@@ -301,6 +301,9 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 } else {
                   if( file.exists(paste0(bufFolder,"reconciling_Towns_",bufGrid_ID,".shp")) & (bufBASN < theBASN) ){
                     townShps[[j]] <- checkShp(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID))
+                    townShps[[j]]@data <- data.frame(Town_ID=townShps[[j]]@data$Recon_T_ID)
+                    #names(townShps[[j]]@data)[names(townShps[[j]]@data) == "Recon_T_ID"] <- "Town_ID"
+                    
                     #townShps[[j]] <- readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID),verbose=FALSE)
                   }
                 }
@@ -388,7 +391,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             cat("Preparation complete. ")
             cat(paste0("Your new cell to digitize is ",theNext,".\n"))
             if( otherTowns == 1){
-              cat("Previously digitized towns are in your buffer.  These areas are off-limits for digitizing.\n")
+              cat("--- *** ---> Previously digitized towns are in your buffer.  These areas are off-limits for digitizing. <--- *** ---\n")
             } else {
               cat(paste0("No towns found within the buffering radius of cell ",theNext,". All areas open for digitizing.\n"))
             }
@@ -421,7 +424,6 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             }
         
             if(double == 0){
-            
               plot(shpGID,add=TRUE,col="#d7191c",border="white")
             } else {
               
@@ -438,15 +440,25 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             inCircle <- gBuffer(gCentroid(shpGID),byid=TRUE,width=9000)        
             
             ring <- AddHoleToPolygon(outCircle,inCircle)
-            
             plot(ring,add=TRUE,col="red",border="red")
+            
+            if( is.null(allShps) ){ 
+              
+              #   ---- No towns in buffer.
+              mtext(side=3,line=-0.75,"Your newly checked-out cell is circled in red.")
+            } else {
+              
+              #   ---- Towns in buffer.
+              mtext(side=3,line=-0.75,"Your newly checked-out cell is circled in red.")
+              mtext(side=1,line=-1.00,"Be wary of possible towns in your new cell's buffer.",col="red")
+            }
             
             #   ---- Now, plot the buffer of our new cell.  But NOT where we have already plotted
             #   ---- a closed cell.  We want to exclude these!
             dontPlot <- assign[assign$doneStatus == 1 & !is.na(assign$doneStatus),]$Grid_ID
             plot(shpBuf[!(shpBuf@data$Grid_ID %in% dontPlot),],add=TRUE,col="#a6d96a",border="white")
             
-            mtext(side=3,line=-0.75,"Your newly checked-out cell is circled in red.")
+
           
           } else {   
             #   ---- One of the 8 cells is locked.  
@@ -497,6 +509,10 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       message(cond)
       # Choose a return value in case of error
       return(NA)
+    },
+    warning=function(cond){
+      message(cond)
+      return(NULL)
     }
   )
 }  

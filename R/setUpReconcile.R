@@ -6,7 +6,7 @@ setUpReconcile <- function(theNext,userID){
   out <- tryCatch(
     {
       
-      # theNext <- "CO156212"
+      # theNext <- "CO165342"
   
       #   ---- Get folder structure.  
       tblFolders <- getFolderStatus()
@@ -20,13 +20,15 @@ setUpReconcile <- function(theNext,userID){
      
       pInd <- substr(files,1,1) == 'p' & 
               substr(files,nchar(files) - 3,nchar(files)) == ".shp" &
-              grepl("Towns",files,fixed=TRUE)
+              grepl("Towns",files,fixed=TRUE) &
+             !grepl("Copy",files,fixed=TRUE)
       
       pShpC <- substr(files[pInd],1,nchar(files[pInd]) - 4)
       
       sInd <- substr(files,1,1) == 's' & 
-        substr(files,nchar(files) - 3,nchar(files)) == ".shp" &
-        grepl("Towns",files,fixed=TRUE)
+              substr(files,nchar(files) - 3,nchar(files)) == ".shp" &
+              grepl("Towns",files,fixed=TRUE) &
+              !grepl("Copy",files,fixed=TRUE)
       
       sShpC <- substr(files[sInd],1,nchar(files[sInd]) - 4)
       
@@ -65,6 +67,21 @@ setUpReconcile <- function(theNext,userID){
       checkApply <- function(shp){
         if(class(get(paste0(substr(shp,1,1),'Shp'))) == "SpatialPolygonsDataFrame"){
           lapply(shp,readCheckCellValidity)
+          
+          #   ---- The function call to readCheckCellValidity gets rid of the lock.  Put it back for the 
+          #   ---- function checkInCell.
+          
+          #   ---- Check for a lock on table tblCellStatus.csv
+          lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
+          if(length(lock) > 0){
+            stop("The function is currently locked;  try again in a minute.")
+          } else {
+            #   ---- Lock the table tblCellStatus so that two users cannot update
+            #   ---- it at the same time. 
+            lockdf <- data.frame(userID=userID)
+            write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+          }
+          
         } else {
           cat(paste0("The check of ",shp," found no towns to check.  Be sure this is correct. If so, continue.\n"))
         }
@@ -152,21 +169,23 @@ setUpReconcile <- function(theNext,userID){
       file.copy(fileList,folder,overwrite=TRUE,recursive = FALSE,copy.mode = TRUE)
       file.rename(paste0(folder,"/BlankCO_NAIP.mxd"),paste0(folder,"/reconciling_",theNext,".mxd"))
       
-      # ---- Set up the items in the out list.
-      # theNextdf <- data.frame(theNext=theNext,stringsAsFactors=FALSE)
-      # theRangedf <- data.frame(theRange=theRange,stringsAsFactors=FALSE)
-      # thepFirstNamedf <- data.frame(thepFN=pName,stringsAsFactors=FALSE)
-      # thesFirstNamedf <- data.frame(thesFN=sName,stringsAsFactors=FALSE)
-      # out <- list(assign=assign,theNext=theNextdf,theRange=theRangedf,thepFirstName=thepFirstNamedf,thesFirstName=thesFirstNamedf)
-      # return(out)
+      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+          file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+        }
+      }
+      
     },
     error=function(cond){
       message("It appears you broke the function;  however, any lock originally set has been removed.\n")
       message("Determine the cause of failure, remedy, and then try again.  Ask for help if this result seems surprising.\n")
       
-      #   ---- Remove the lock.  
-      if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
-        file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+          file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+        }
       }
       
       message("Here's the original error message:\n")
