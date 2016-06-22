@@ -6,7 +6,7 @@
 checkCellValidity <- function(shp,userID){
 
   # shp <- "pJason_Towns_CO115329"#"sCarissa_Towns_CO156212"
-  # shp <- "reconciling_Towns_CO120160"   userID <- 219
+  # shp <- "reconciling_Towns_CO137799"   userID <- 873
 
       
   #   ---- Because we also call checkCellValidity when we check in a cell, which itself calls
@@ -150,8 +150,14 @@ checkCellValidity <- function(shp,userID){
     checkC <- tryCatch(
       {
         if(substr(shp,1,5) == "recon"){
-          gInts <- gIntersects(shpfile[!(shpfile@data$Recon_T_ID %in% NO),],shpfile[!(shpfile@data$Recon_T_ID %in% NO),],byid=TRUE)
-          nTowns <- nrow(shpfile@data[!(shpfile@data$Recon_T_ID %in% NO),])
+          nGoodTowns <- nrow(shpfile[!(shpfile@data$Recon_T_ID %in% NO),]@data)
+          if(nGoodTowns > 0){
+            gInts <- gIntersects(shpfile[!(shpfile@data$Recon_T_ID %in% NO),],shpfile[!(shpfile@data$Recon_T_ID %in% NO),],byid=TRUE)
+            nTowns <- nrow(shpfile@data[!(shpfile@data$Recon_T_ID %in% NO),])
+          } else {
+            gInts <- nrow(shpfile@data)
+            nTowns <- nrow(shpfile@data)
+          }
         } else {
           gInts <- gIntersects(shpfile,shpfile,byid=TRUE)
           nTowns <- nrow(shpfile@data)
@@ -218,10 +224,15 @@ checkCellValidity <- function(shp,userID){
         if( substr(shp,1,5) == "recon" ){
           df <- shpfile@data
           df <- df[!(df$Recon_T_ID %in% NO),]
-          df <- df[order(df$Recon_T_ID),]
-          df$seq <- seq(1,nTowns,1)
-          if(df[nTowns,]$Recon_T_ID != df[nTowns,]$seq){
-            stop("This Grid_ID's set of towns has poor Recon_T_ID numbering.  Investigate variable Recon_T_ID.\n")
+          
+          if(nrow(df) > 0){
+            df <- df[order(df$Recon_T_ID),]
+            df$seq <- seq(1,nTowns,1)
+            if(df[nTowns,]$Recon_T_ID != df[nTowns,]$seq){
+              stop("This Grid_ID's set of towns has poor Recon_T_ID numbering.  Investigate variable Recon_T_ID.\n")
+            } else {
+              checkE <- 0
+            }
           } else {
             checkE <- 0
           }

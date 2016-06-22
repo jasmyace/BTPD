@@ -27,6 +27,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       pFirstName <- as.character(droplevels(tblNames[tblNames$userID == userID,]$FirstName))
       singleActive <- tblNames[tblNames$userID == userID,]$singleActive
       doubleActive <- tblNames[tblNames$userID == userID,]$doubleActive
+      # doubleActive <- 1    # ---- Here for testing purposes.  
       
       #   ---- Get folder structure.  
       tblFolders <- getFolderStatus()
@@ -153,6 +154,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
           
               #   ---- The function sample is weird when you only want one.  So go a different route.
               partnerValid <- tblNames[tblNames$doubleActive == 1 & tblNames$userID != userID,]
+              # partnerValid <- tblNames[tblNames$userID == 873,]    #   ---- This is here for testing.
               if(nrow(partnerValid) == 0){
                 stop("Possibly only one digitizer is active for partnering.  Investigate.")
               }

@@ -5,7 +5,7 @@
 
 getStatus <- function(userID,plotOnly=FALSE){
   
-  # userID <- 100
+  # userID <- 219
   # userID <- "All"
   
   #   ---- Get the master cell status and master grid.  
@@ -33,7 +33,11 @@ getStatus <- function(userID,plotOnly=FALSE){
   singly <- data.frame(Grid_ID=singly[,c('Grid_ID')])
   if(nrow(singly) > 0){singly$singly <- 1}
   
-  doubly <- data.frame(Grid_ID=doubly[,c('Grid_ID')],digiUserID=doubly[,c('digiUserID')],digiPartner=doubly[,c('digiPartner')])
+  doubly <- data.frame(Grid_ID=doubly[,c('Grid_ID')],
+                       digiUserID=doubly[,c('digiUserID')],
+                       digiPartner=doubly[,c('digiPartner')],
+                       digiPrimary=doubly[,c('digiPrimary')],
+                       digiSecondary=doubly[,c('digiSecondary')] )
   if(nrow(doubly) > 0){
     
     #   ---- Identify if a user is primary or secondary for doubly-sampled cells. 
@@ -45,12 +49,12 @@ getStatus <- function(userID,plotOnly=FALSE){
       #   ---- and secondary;  so the distinction is unimportant.
       doubly$doubly <- 1
     } else {
-      if(nrow(doubly[doubly$digiUserID == userID,]) > 0){
-        doubly[doubly$digiUserID == userID,]$doubly <- 1
-      }
-      if(nrow(doubly[doubly$digiPartner == userID,]) > 0){
-        doubly[doubly$digiPartner == userID,]$doubly <- 2
-      }
+#       if(nrow(doubly[doubly$digiUserID == userID,]) > 0){
+#         doubly[doubly$digiUserID == userID,]$doubly <- 1
+#       }
+#       if(nrow(doubly[doubly$digiPartner == userID,]) > 0){
+#         doubly[doubly$digiPartner == userID,]$doubly <- 2
+#       }
     }
   }
   
@@ -76,17 +80,17 @@ getStatus <- function(userID,plotOnly=FALSE){
   }
     
   if(nrow(doubly) > 0){
-    grid@data <- merge(grid@data,doubly[,c('Grid_ID','doubly')],by=c('Grid_ID'),all.x=TRUE)
+    grid@data <- merge(grid@data,doubly[,c('Grid_ID','digiPrimary','digiSecondary')],by=c('Grid_ID'),all.x=TRUE)
     if( !(plotOnly == TRUE) ){
-      if(nrow(doubly[doubly$doubly == 1,]) == 1){
-        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_ID ",doubly[doubly$doubly == 1,]$Grid_ID[1],".\n"))
-      } else if(nrow(doubly[doubly$doubly == 1,]) > 1) {
-        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_IDs ",paste0(doubly[doubly$doubly == 1,]$Grid_ID,collapse=", "),".\n"))
+      if(nrow(doubly[doubly$digiPrimary == userID,]) == 1){
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_ID ",doubly[doubly$digiPrimary == userID,]$Grid_ID[1],".\n"))
+      } else if(nrow(doubly[doubly$digiPrimary == userID,]) > 1) {
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_IDs ",paste0(doubly[doubly$digiPrimary == userID,]$Grid_ID,collapse=", "),".\n"))
       } 
-      if(nrow(doubly[doubly$doubly == 2,]) == 1){
-        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_ID ",doubly[doubly$doubly == 2,]$Grid_ID[1],".\n"))
-      } else if(nrow(doubly[doubly$doubly == 2,]) > 1) {
-        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_IDs ",paste0(doubly[doubly$doubly == 2,]$Grid_ID,collapse=", "),".\n"))
+      if(nrow(doubly[doubly$digiSecondary == userID,]) == 1){
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_ID ",doubly[doubly$digiSecondary == userID,]$Grid_ID[1],".\n"))
+      } else if(nrow(doubly[doubly$digiSecondary == userID,]) > 1) {
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_IDs ",paste0(doubly[doubly$digiSecondary == userID,]$Grid_ID,collapse=", "),".\n"))
       } 
     }
   }
@@ -125,8 +129,8 @@ getStatus <- function(userID,plotOnly=FALSE){
   plot(grid,main=paste0(firstName,"'s Cells"),col="gray90",border="white")
   plot(grid[grid@data$buffer == 1,],col="#a6d96a",border="white",add=TRUE)   # blue
   plot(grid[grid@data$singly == 1,],col="#d7191c",border="white",add=TRUE)   # yellow
-  plot(grid[grid@data$doubly == 1,],col="#fdae61",border="white",add=TRUE)    # red
-  plot(grid[grid@data$doubly == 2,],col="#ffffbf",border="white",add=TRUE)     # orange
+  plot(grid[grid@data$digiPrimary == userID,],col="#fdae61",border="white",add=TRUE)    # red
+  plot(grid[grid@data$digiSecondary == userID,],col="#ffffbf",border="white",add=TRUE)     # orange
   plot(grid[grid@data$closed == 1,],col="#1a9641",border="white",add=TRUE)   # green3
   legend("bottomleft",c('Open','Singly','Doubly -- Primary','Doubly -- Secondary','Buffer','Closed'),border=rep("white",4),fill=c("gray90","#d7191c","#fdae61","#ffffbf","#a6d96a","#1a9641"),cex=0.6)
   

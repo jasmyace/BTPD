@@ -1,6 +1,8 @@
 
 balanceAssign <- function(userID,assign,tblNames){
   
+  #  userID <- 219
+  
   #   ---- Restrict to the doubly assigned.  We use these to get frequencies
   #   ---- of what's been done so far.  
   doubles <- assign[ !is.na(assign$digiDouble) & assign$digiDouble == 1,]
@@ -11,7 +13,8 @@ balanceAssign <- function(userID,assign,tblNames){
   #   ---- Identify the options of assigning a partner.  
   # tblNames <- checkUser(userID)
   theDoublyActives <- c(tblNames[tblNames$doubleActive == 1 & tblNames$userID != userID,]$userID)
-
+  # theDoublyActives <- c(219,873)     #   ---- For testing only.
+  
   if( userID %in% theUsers ){
     
     #   ---- Count up the unique instances of users.  Call it 'Dim' since it forms
@@ -20,7 +23,30 @@ balanceAssign <- function(userID,assign,tblNames){
     Dim <- length(theUsers)
     
     #   ---- Pretty up the list output from the table.  
-    balance <- as.data.frame(table(doubles$digiPrimary,doubles$digiSecondary))
+    
+    #   ---- This is roundabout, but when we have a new user, that user can only be
+    #   ---- one of primary or secondary.  This means the table is non-square.  But 
+    #   ---- everything assumes that it is.  So, hijack everything to ensure that 
+    #   ---- the code that assumes that fact still works, even when it's not true. 
+    # balance <- as.data.frame(table(doubles$digiPrimary,doubles$digiSecondary))
+
+    #   ---- Make the square matrix, based on the number of distinct users.  
+    balance <- matrix(NA,nrow=Dim,ncol=Dim)
+    rownames(balance) <- theUsers
+    colnames(balance) <- theUsers
+    
+    #   ---- Count the number of instances.  This emulates the table function.  
+    for( i in 1:Dim ){
+      for (j in 1:Dim ){
+        balance[i,j] <- sum(doubles$digiPrimary == theUsers[i] & doubles$digiSecondary == theUsers[j])
+      }
+    }
+    
+    #   ---- This emulates the table-to-date-frame functionality.  
+    
+    balance <- as.data.frame(as.table(balance))
+    
+    #   ---- Now, we continue on as we did before.  
     names(balance)[names(balance) == "Var1"] <- "digiPrimary"
     names(balance)[names(balance) == "Var2"] <- "digiSecondary"
     balance$Row <- rep(seq(1,Dim,1),Dim)
