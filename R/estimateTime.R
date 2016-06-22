@@ -84,4 +84,4 @@ estimateTime <- function(shp){
   counts <- rbind(counts,colSums(counts))
   colnames(counts) <- dayLabels
   dayTotals <- counts[nrow(counts),]
- 
+}
