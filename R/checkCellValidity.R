@@ -5,7 +5,7 @@
 
 checkCellValidity <- function(shp,userID){
 
-  # shp <- "pJason_Towns_CO115329"#"sCarissa_Towns_CO156212"
+  # shp <- "pAli_Towns_CO141712"#"sCarissa_Towns_CO156212"
   # shp <- "reconciling_Towns_CO137799"   userID <- 873
 
       
@@ -59,7 +59,25 @@ checkCellValidity <- function(shp,userID){
   }
   
   #   ---- Get the shapefile to check.
-  shpfile <- checkShp(shpDir,shp)
+  shpfile <- tryCatch(
+    {
+      checkShp(shpDir,shp)
+    },
+    error=function(cond){
+      
+      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+          file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+        }
+      }
+      
+      message(cond)
+      message("\nYou possibly no longer possess this cell.  Investigate.\n")
+      return(1)
+    }
+  )
+    
   localGrid <- checkShp(shpDir,paste0("LocalGrid_",Grid_ID))
  
   #   ---- If the shapefile has no features, there is nothing to check. 

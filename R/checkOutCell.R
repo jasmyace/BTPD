@@ -154,7 +154,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
           
               #   ---- The function sample is weird when you only want one.  So go a different route.
               partnerValid <- tblNames[tblNames$doubleActive == 1 & tblNames$userID != userID,]
-              # partnerValid <- tblNames[tblNames$userID == 873,]    #   ---- This is here for testing.
+              # partnerValid <- tblNames[tblNames$userID %in% c(219),]    #   ---- This is here for testing.
               if(nrow(partnerValid) == 0){
                 stop("Possibly only one digitizer is active for partnering.  Investigate.")
               }
@@ -200,7 +200,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 #   ---- Note that we already check for at least two digitizers above.  
                 assignInfo <- tryCatch(
                   {
-                    balanceAssign(userID,assign=assign,tblNames=tblNames)
+                    balanceAssign(userID,assign=assign,tblNames=tblNames,partnerValid=partnerValid$userID)
                   },
                   error=function(condAI){
                     message("Something is wrong with the balanceAssign function.  Investigate.\n")
@@ -308,7 +308,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 } else {
                   if( file.exists(paste0(bufFolder,"reconciling_Towns_",bufGrid_ID,".shp")) & (bufBASN < theBASN) ){
                     townShps[[j]] <- checkShp(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID))
-                    townShps[[j]]@data <- data.frame(Town_ID=townShps[[j]]@data$Recon_T_ID)
+                    townShps[[j]]@data <- data.frame(Town_ID=as.numeric(townShps[[j]]@data$Recon_T_ID))
                     #names(townShps[[j]]@data)[names(townShps[[j]]@data) == "Recon_T_ID"] <- "Town_ID"
                     
                     #townShps[[j]] <- readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID),verbose=FALSE)
@@ -324,6 +324,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
             triggered <- 0
             for(j in 1:length(townShps)){
               if( class(townShps[[j]]) == "SpatialPolygonsDataFrame" ){
+                #print(j)
                 nR <- length(slot(townShps[[j]],"polygons")) 
                 if(triggered == 0){
                   first <- 1
@@ -339,6 +340,8 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                   uidR          <- uidR + nR
                   allShps       <- spRbind(allShps,townShps[[j]])
                 }   
+                #cat(paste0("uidR: ",uidR,"\n"))
+                #cat(paste0("nR: ",nR,"\n"))
               }
             }
         

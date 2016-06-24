@@ -1,19 +1,25 @@
 
-balanceAssign <- function(userID,assign,tblNames){
+balanceAssign <- function(userID,assign,tblNames,partnerValid){
   
-  #  userID <- 219
+  #  userID <- 873
+  #  partnerValid <- partnerValid$userID
   
   #   ---- Restrict to the doubly assigned.  We use these to get frequencies
   #   ---- of what's been done so far.  
   doubles <- assign[ !is.na(assign$digiDouble) & assign$digiDouble == 1,]
  
-  #   ---- Identify the unique users up to this point.  
+  #   ---- Identify the unique users up to this point.  Note that partnerValid
+  #   ---- excludes the userID by default.  
   theUsers <- unique(c(doubles$digiPrimary,doubles$digiSecondary))
+  theUsers <- c(theUsers[theUsers %in% partnerValid],userID)
+  
  
   #   ---- Identify the options of assigning a partner.  
   # tblNames <- checkUser(userID)
   theDoublyActives <- c(tblNames[tblNames$doubleActive == 1 & tblNames$userID != userID,]$userID)
-  # theDoublyActives <- c(219,873)     #   ---- For testing only.
+  theDoublyActives <- theDoublyActives[theDoublyActives %in% partnerValid]
+  
+  # theDoublyActives <- c(219)     #   ---- For testing only.
   
   if( userID %in% theUsers ){
     

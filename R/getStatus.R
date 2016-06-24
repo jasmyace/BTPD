@@ -47,7 +47,7 @@ getStatus <- function(userID,plotOnly=FALSE){
       
       #   ---- When looking at everybody combined, doublys are both primary
       #   ---- and secondary;  so the distinction is unimportant.
-      doubly$doubly <- 1
+#     doubly$doubly <- 1
     } else {
 #       if(nrow(doubly[doubly$digiUserID == userID,]) > 0){
 #         doubly[doubly$digiUserID == userID,]$doubly <- 1
@@ -82,15 +82,15 @@ getStatus <- function(userID,plotOnly=FALSE){
   if(nrow(doubly) > 0){
     grid@data <- merge(grid@data,doubly[,c('Grid_ID','digiPrimary','digiSecondary')],by=c('Grid_ID'),all.x=TRUE)
     if( !(plotOnly == TRUE) ){
-      if(nrow(doubly[doubly$digiPrimary == userID,]) == 1){
-        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_ID ",doubly[doubly$digiPrimary == userID,]$Grid_ID[1],".\n"))
-      } else if(nrow(doubly[doubly$digiPrimary == userID,]) > 1) {
-        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_IDs ",paste0(doubly[doubly$digiPrimary == userID,]$Grid_ID,collapse=", "),".\n"))
+      if(nrow(doubly[doubly$digiPrimary %in% userID,]) == 1){
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_ID ",doubly[doubly$digiPrimary %in% userID,]$Grid_ID[1],".\n"))
+      } else if(nrow(doubly[doubly$digiPrimary %in% userID,]) > 1) {
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_IDs ",paste0(doubly[doubly$digiPrimary %in% userID,]$Grid_ID,collapse=", "),".\n"))
       } 
-      if(nrow(doubly[doubly$digiSecondary == userID,]) == 1){
-        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_ID ",doubly[doubly$digiSecondary == userID,]$Grid_ID[1],".\n"))
-      } else if(nrow(doubly[doubly$digiSecondary == userID,]) > 1) {
-        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_IDs ",paste0(doubly[doubly$digiSecondary == userID,]$Grid_ID,collapse=", "),".\n"))
+      if(nrow(doubly[doubly$digiSecondary %in% userID,]) == 1){
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_ID ",doubly[doubly$digiSecondary %in% userID,]$Grid_ID[1],".\n"))
+      } else if(nrow(doubly[doubly$digiSecondary %in% userID,]) > 1) {
+        cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_IDs ",paste0(doubly[doubly$digiSecondary %in% userID,]$Grid_ID,collapse=", "),".\n"))
       } 
     }
   }
@@ -129,8 +129,10 @@ getStatus <- function(userID,plotOnly=FALSE){
   plot(grid,main=paste0(firstName,"'s Cells"),col="gray90",border="white")
   plot(grid[grid@data$buffer == 1,],col="#a6d96a",border="white",add=TRUE)   # blue
   plot(grid[grid@data$singly == 1,],col="#d7191c",border="white",add=TRUE)   # yellow
-  plot(grid[grid@data$digiPrimary == userID,],col="#fdae61",border="white",add=TRUE)    # red
-  plot(grid[grid@data$digiSecondary == userID,],col="#ffffbf",border="white",add=TRUE)     # orange
+  plot(grid[grid@data$digiPrimary %in% userID,],col="#fdae61",border="white",add=TRUE)   
+  if( length(userID) == 1 ){
+    plot(grid[grid@data$digiSecondary %in% userID,],col="#ffffbf",border="white",add=TRUE)   
+  }
   plot(grid[grid@data$closed == 1,],col="#1a9641",border="white",add=TRUE)   # green3
   legend("bottomleft",c('Open','Singly','Doubly -- Primary','Doubly -- Secondary','Buffer','Closed'),border=rep("white",4),fill=c("gray90","#d7191c","#fdae61","#ffffbf","#a6d96a","#1a9641"),cex=0.6)
   
