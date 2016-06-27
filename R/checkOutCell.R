@@ -24,6 +24,9 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       
       #   ---- Check to make sure user is legitimate.  
       tblNames <- checkUser(userID)
+      
+      #tblNames[tblNames$userID %in% c(191,219,546,912,873),]$doubleActive <- 1
+      
       pFirstName <- as.character(droplevels(tblNames[tblNames$userID == userID,]$FirstName))
       singleActive <- tblNames[tblNames$userID == userID,]$singleActive
       doubleActive <- tblNames[tblNames$userID == userID,]$doubleActive
@@ -210,6 +213,9 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                     return(NA)
                   }
                 )
+                
+                #   ---- Convert the single-digit factor value to its true interpretive level.  
+                assignInfo$thePartnerAssign <- as.character(droplevels(assignInfo$thePartnerAssign))
                 
                 #   ---- Method 2:  assign Primary and Secondary based on balancing.  
                 if( assignInfo$userIDAssign == "Primary" ){

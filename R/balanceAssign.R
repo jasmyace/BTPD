@@ -72,15 +72,15 @@ balanceAssign <- function(userID,assign,tblNames,partnerValid){
   assignBalance <- assignBalance[order(assignBalance$Freq),]
   
   if(assignBalance[1,]$digiPrimary == userID){
-    userIDassign <- "Primary"
-    thePartnerAssign <- assignBalance[1,]$digiSecondary
+    userIDAssign <- "Primary"
+    thePartnerAssign <- as.character(droplevels(assignBalance[1,]$digiSecondary))
   } else {
-    userIDassign <- "Secondary"
-    thePartnerAssign <- assignBalance[1,]$digiPrimary
+    userIDAssign <- "Secondary"
+    thePartnerAssign <- as.character(droplevels(assignBalance[1,]$digiPrimary))
   }
   
   assignInfo <- data.frame(userID=userID,
-                           userIDassign=userIDAssign,
+                           userIDAssign=userIDAssign,
                            thePartnerAssign=thePartnerAssign)
 
 #   
