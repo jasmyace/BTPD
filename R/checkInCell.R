@@ -5,32 +5,23 @@
 
 checkInCell <- function(theNext,userID){
        
-      # theNext <- "CO124106"
+      # theNext <- "CO129924"
       # userID <- 807
       
+  putDownLock(userID)
+      
 #       #   ---- Check for a lock on table tblCellStatus.csv
-#       lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
-#       if(length(lock) > 0){
+#       lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+#       if(lock == TRUE){
 #         stop("The function is currently locked;  try again in a minute.")
-#       } else {
+#       } else if(lock == FALSE){
 #         #   ---- Lock the table tblCellStatus so that two users cannot update
 #         #   ---- it at the same time. 
 #         lockdf <- data.frame(userID=userID)
 #         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+#       } else {
+#         stop("Something is really wrong.\n")
 #       }
-      
-      #   ---- Check for a lock on table tblCellStatus.csv
-      lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-      if(lock == TRUE){
-        stop("The function is currently locked;  try again in a minute.")
-      } else if(lock == FALSE){
-        #   ---- Lock the table tblCellStatus so that two users cannot update
-        #   ---- it at the same time. 
-        lockdf <- data.frame(userID=userID)
-        write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
-      } else {
-        stop("Something is really wrong.\n")
-      }
       
   out <- tryCatch(
     {
@@ -79,7 +70,7 @@ checkInCell <- function(theNext,userID){
         rShpC <- substr(files[rInd],1,nchar(files[rInd]) - 4)
         
         #   ---- It could be neither primary nor secondary found a town, and they skipped the makeReconcile
-        #   ---- step, which is okay.  In that case, there is neither a reconcile shapefile nor text file.
+        #   ---- step.  In that case, there is neither a reconcile shapefile nor text file.
         if( length(rShpC) >= 1 ){
           
           if( is.na(rShpC) | is.na(sShpC) | is.null(sShpC) | is.null(rShpC) | length(sShpC) == 0 | length(rShpC) == 0 ){
@@ -155,8 +146,8 @@ checkInCell <- function(theNext,userID){
       
       #   ---- If either primary or secondary recorded one town, we MUST have a 
       #   ---- reconciling shapefile.  Abort if we do not.  
-      if( double == 1){
-        if( ( nrowCool(pShp) + nrowCool(sShp) ) > 0 & length(rShpC) == 0 ){
+      if( double == 1 ){
+        if( ( nrowCool(pShp) + nrowCool(sShp) ) > 0 & sum(rInd) == 0 ){
         
           #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
           if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
@@ -164,7 +155,7 @@ checkInCell <- function(theNext,userID){
               file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
             }
           }
-          stop("The primary or secondary shapefile contains a town, but no reconciling shapefile exists.  Investigate.\n")
+          stop("The primary or secondary shapefile contains a town, but no reconciling file exists.  Check if step 6 was performed.\n")
         }
       }
   

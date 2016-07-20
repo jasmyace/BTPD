@@ -4,18 +4,20 @@
 
 checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing"){
 
-      #   ---- Check for a lock on table tblCellStatus.csv
-      lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-      if(lock == TRUE){
-        stop("The function is currently locked;  try again in a minute.")
-      } else if(lock == FALSE){
-        #   ---- Lock the table tblCellStatus so that two users cannot update
-        #   ---- it at the same time. 
-        lockdf <- data.frame(userID=userID)
-        write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
-      } else {
-        stop("Something is really wrong.\n")
-      }
+  putDownLock(userID)
+        
+#       #   ---- Check for a lock on table tblCellStatus.csv
+#       lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+#       if(lock == TRUE){
+#         stop("The function is currently locked;  try again in a minute.")
+#       } else if(lock == FALSE){
+#         #   ---- Lock the table tblCellStatus so that two users cannot update
+#         #   ---- it at the same time. 
+#         lockdf <- data.frame(userID=userID)
+#         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+#       } else {
+#         stop("Something is really wrong.\n")
+#       }
       
   out <- tryCatch(
     {  
