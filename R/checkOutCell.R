@@ -25,7 +25,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       #   ---- Check to make sure user is legitimate.  
       tblNames <- checkUser(userID)
       
-      #tblNames[tblNames$userID %in% c(191,219,546,912,873),]$doubleActive <- 1
+      #tblNames[tblNames$userID %in% c(219,764),]$doubleActive <- 1
       
       pFirstName <- as.character(droplevels(tblNames[tblNames$userID == userID,]$FirstName))
       singleActive <- tblNames[tblNames$userID == userID,]$singleActive

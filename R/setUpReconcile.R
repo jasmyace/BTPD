@@ -6,7 +6,7 @@ setUpReconcile <- function(theNext,userID){
   out <- tryCatch(
     {
       
-      # theNext <- "CO165342"
+      # theNext <- "CO143228"
   
       #   ---- Get folder structure.  
       tblFolders <- getFolderStatus()

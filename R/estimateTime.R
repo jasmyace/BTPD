@@ -73,15 +73,31 @@ estimateTime <- function(shp){
   #   ---- Note that I build each day by 24 hours.  This won't work if we straddle a time change.  
   dayLabels <- unique(strftime(as.POSIXlt(singly$digiEndTime),format="%D"))
   dayLabels <- c(dayLabels[order(dayLabels)],"Total")
-  
   singly$jDay <- as.numeric(floor(julian(as.POSIXlt(singly$digiEndTime),origin=as.POSIXct("2016-05-21",tz="America/Denver"))) + 1)
-  
-
-  
   
   counts <- as.matrix(table(singly$digiUserID,singly$jDay))
   counts <- cbind(counts,rowSums(counts))
   counts <- rbind(counts,colSums(counts))
   colnames(counts) <- dayLabels
   dayTotals <- counts[nrow(counts),]
+  dayTotalsSingle <- dayTotals
+  
+  
+  #   ---- Person-based.  How many cells are people doing in a work day?
+  singly <- done[done$digiDouble == 1,]
+  
+  #   ---- Note that I build each day by 24 hours.  This won't work if we straddle a time change.  
+  dayLabels <- unique(strftime(as.POSIXlt(singly$digiEndTime),format="%D"))
+  dayLabels <- c(dayLabels[order(dayLabels)],"Total")
+  singly$jDay <- as.numeric(floor(julian(as.POSIXlt(singly$digiEndTime),origin=as.POSIXct("2016-05-21",tz="America/Denver"))) + 1)
+  
+  counts <- as.matrix(table(singly$digiUserID,singly$jDay))
+  counts <- cbind(counts,rowSums(counts))
+  counts <- rbind(counts,colSums(counts))
+  colnames(counts) <- dayLabels
+  dayTotals <- counts[nrow(counts),]
+  dayTotalsDouble <- dayTotals
+  
+  
+  return(list(dayTotalsSingle,dayTotalsDouble))
 }

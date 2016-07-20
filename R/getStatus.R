@@ -5,8 +5,9 @@
 
 getStatus <- function(userID,plotOnly=FALSE){
   
-  # userID <- 219
+  # userID <- 873
   # userID <- "All"
+  # plotOnly <- FALSE
   
   #   ---- Get the master cell status and master grid.  
   assign <- getCellStatus()
@@ -79,6 +80,7 @@ getStatus <- function(userID,plotOnly=FALSE){
     }
   }
     
+  cat("\n")
   if(nrow(doubly) > 0){
     grid@data <- merge(grid@data,doubly[,c('Grid_ID','digiPrimary','digiSecondary')],by=c('Grid_ID'),all.x=TRUE)
     if( !(plotOnly == TRUE) ){
@@ -87,6 +89,7 @@ getStatus <- function(userID,plotOnly=FALSE){
       } else if(nrow(doubly[doubly$digiPrimary %in% userID,]) > 1) {
         cat(paste0(firstName,"'s list of doubly-digitized cells as the primary includes Grid_IDs ",paste0(doubly[doubly$digiPrimary %in% userID,]$Grid_ID,collapse=", "),".\n"))
       } 
+      cat("\n")
       if(nrow(doubly[doubly$digiSecondary %in% userID,]) == 1){
         cat(paste0(firstName,"'s list of doubly-digitized cells as the secondary includes Grid_ID ",doubly[doubly$digiSecondary %in% userID,]$Grid_ID[1],".\n"))
       } else if(nrow(doubly[doubly$digiSecondary %in% userID,]) > 1) {
@@ -94,7 +97,41 @@ getStatus <- function(userID,plotOnly=FALSE){
       } 
     }
   }
+  
+  
+  
+  #   ---- Summarize the doubly digitizing for this person.  
+  if( length(userID) == 1 & nrow(doubly) >= 1 ){
+    namesReport <- names
+    namesReport$digiUserID <- namesReport$userID
+  
+    doublyReport <- doubly
+    doublyReport <- doublyReport[order(doublyReport$digiUserID,doublyReport$digiPartner),c('Grid_ID','digiUserID','digiPartner')]
+    doublyReport <- merge(doublyReport,namesReport[,c('digiUserID','FirstName')],by=c('digiUserID'),all.x=TRUE)
     
+    doublyReport2 <- merge(doublyReport,assign[,c('Grid_ID','digiStartTime','jErrStatus')],by=c("Grid_ID"),all.x=TRUE)
+    doublyReport2$DaysOpen <- as.integer(round(as.Date(Sys.Date(),format="%m/%d/%Y") - as.Date(as.POSIXlt(doublyReport2$digiStartTime,format="%m/%d/%Y")),0))
+    
+    doublyReport <- doublyReport2
+    
+    names(doublyReport)[names(doublyReport) == "FirstName"] <- "Checking-Out Digitizer"
+    
+    namesReport$digiPartner <- namesReport$userID
+    doublyReport <- merge(doublyReport,namesReport[,c('digiPartner','FirstName')],by=c('digiPartner'),all.x=TRUE)
+    names(doublyReport)[names(doublyReport) == "FirstName"] <- "Partner"
+    
+    doublyReport$digiPartner <- doublyReport$digiUserID <- doublyReport$jErrStatus <- doublyReport$digiStartTime <- NULL
+    doublyReport <- doublyReport[,c('Grid_ID','Checking-Out Digitizer','Partner','DaysOpen')]
+    
+    cat("\n")
+    cat(paste0("A summary of ",firstName,"'s doubly pairings follows.\n\n"))
+    print(doublyReport)
+    #cat("\n")
+  }
+  
+  
+  
+  cat("\n")
   if(nrow(buffer) > 0){
     grid@data <- merge(grid@data,buffer,by=c('Grid_ID'),all.x=TRUE)
     if( !(plotOnly == TRUE) ){
@@ -107,6 +144,7 @@ getStatus <- function(userID,plotOnly=FALSE){
   }
     
   if(nrow(closed) > 0){
+    cat("\n")
     grid@data <- merge(grid@data,closed,by=c('Grid_ID'),all.x=TRUE)
     if( !(plotOnly == TRUE) ){
       if(nrow(closed) == 1){
@@ -117,6 +155,8 @@ getStatus <- function(userID,plotOnly=FALSE){
       }
     }
   }
+  
+  
     
   if(nrow(closed) == 0 & nrow(buffer) == 0 & nrow(doubly) == 0 & nrow(singly) == 0){
     cat(paste0(firstName," has nothing to report.  The Cells map will be blank."))

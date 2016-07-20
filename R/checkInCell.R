@@ -5,8 +5,8 @@
 
 checkInCell <- function(theNext,userID){
        
-      # theNext <- "CO120160"
-      # userID <- 100
+      # theNext <- "CO124106"
+      # userID <- 807
       
 #       #   ---- Check for a lock on table tblCellStatus.csv
 #       lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
@@ -78,7 +78,7 @@ checkInCell <- function(theNext,userID){
     
         rShpC <- substr(files[rInd],1,nchar(files[rInd]) - 4)
         
-        #   ---- It could be neither primary nor secondary found a town, and the skipped the makeReconcile
+        #   ---- It could be neither primary nor secondary found a town, and they skipped the makeReconcile
         #   ---- step, which is okay.  In that case, there is neither a reconcile shapefile nor text file.
         if( length(rShpC) >= 1 ){
           
@@ -141,6 +141,31 @@ checkInCell <- function(theNext,userID){
           }
         )
         return(out)
+      }
+      
+      #   ---- A helper function to make nrow work, regardless of object.  
+      nrowCool <- function(obj){
+        if( class(obj) == "character" ){
+          ans <- 0
+        } else {
+          ans <- nrow(obj)
+        }
+        return(ans)
+      }
+      
+      #   ---- If either primary or secondary recorded one town, we MUST have a 
+      #   ---- reconciling shapefile.  Abort if we do not.  
+      if( double == 1){
+        if( ( nrowCool(pShp) + nrowCool(sShp) ) > 0 & length(rShpC) == 0 ){
+        
+          #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+          if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+            if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+              file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+            }
+          }
+          stop("The primary or secondary shapefile contains a town, but no reconciling shapefile exists.  Investigate.\n")
+        }
       }
   
       #   ---- Apply the checking function, collecting any evidence of a warning.

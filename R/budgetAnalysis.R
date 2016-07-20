@@ -1,6 +1,6 @@
 
 
-getPhaseData <- function(phase,labrDate="061616",labrStem="//LAR-FILE-SRV/Data/BTPD_2016/Project Management/export"){
+getPhaseData <- function(phase,labrDate="071116",labrStem="//LAR-FILE-SRV/Data/BTPD_2016/Project Management/export"){
   
   labrStem <- paste0(labrStem,labrDate)
   
@@ -27,13 +27,17 @@ getPhaseData <- function(phase,labrDate="061616",labrStem="//LAR-FILE-SRV/Data/B
 
 p1df <- getPhaseData(1)
 p2df <- getPhaseData(2)
+p3df <- getPhaseData(3)
+p4df <- getPhaseData(4)
+#p5df <- getPhaseData(5)
+p6df <- getPhaseData(6)
 
-df <- rbind(p1df,p2df[p2df$empID != "JMITCHELL",])
+df <- rbind(p1df,p2df[p2df$empID != "JMITCHELL",],p3df,p4df,p6df)   # this varies, based on what is in folder.
 df[is.na(df)] <- 0
 
 summMetric <- function(df,var){
   
-  summ <- data.frame(tapply(df[,c(var)],list(df$date,df$phase),sum))
+  summ <- data.frame(tapply(as.numeric(df[,c(var)]),list(df$date,df$phase),sum))
   summ$date <- rownames(summ)
   rownames(summ) <- NULL
   
@@ -48,5 +52,6 @@ summMetric <- function(df,var){
 
 }
 
+#df$comment <- NULL
 summTotAmt <- summMetric(df,"totAmt")
 summTotHours <- summMetric(df,"totHours")
