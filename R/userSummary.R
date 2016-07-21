@@ -10,7 +10,7 @@ userSummary <- function(summary="Single"){
   assign <- getCellStatus()
 
   #   ---- Get users. 
-  tblNames <- checkUser(userID=100)
+  tblNames <- checkUser(userID=998)
   tblNames <- tblNames[!(tblNames$userID %in% c(437,798,998,999)),]
   names(tblNames)[names(tblNames) == 'userID'] <- 'digiUserID'
   
