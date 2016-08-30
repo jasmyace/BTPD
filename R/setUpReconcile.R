@@ -68,19 +68,19 @@ setUpReconcile <- function(theNext,userID){
         if(class(get(paste0(substr(shp,1,1),'Shp'))) == "SpatialPolygonsDataFrame"){
           lapply(shp,readCheckCellValidity)
           
-          #   ---- The function call to readCheckCellValidity gets rid of the lock.  Put it back for the 
-          #   ---- function checkInCell.
-          
-          #   ---- Check for a lock on table tblCellStatus.csv
-          lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
-          if(length(lock) > 0){
-            stop("The function is currently locked;  try again in a minute.")
-          } else {
-            #   ---- Lock the table tblCellStatus so that two users cannot update
-            #   ---- it at the same time. 
-            lockdf <- data.frame(userID=userID)
-            write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
-          }
+#           #   ---- The function call to readCheckCellValidity gets rid of the lock.  Put it back for the 
+#           #   ---- function checkInCell.
+#           
+#           #   ---- Check for a lock on table tblCellStatus.csv
+#           lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
+#           if(length(lock) > 0){
+#             stop("The function is currently locked;  try again in a minute.")
+#           } else {
+#             #   ---- Lock the table tblCellStatus so that two users cannot update
+#             #   ---- it at the same time. 
+#             lockdf <- data.frame(userID=userID)
+#             write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+#           }
           
         } else {
           cat(paste0("The check of ",shp," found no towns to check.  Be sure this is correct. If so, continue.\n"))

@@ -5,23 +5,33 @@
 
 checkInCell <- function(theNext,userID){
        
-      # theNext <- "CO129924"
-      # userID <- 807
+      # theNext <- "CO167004"
+      # userID <- 296
       
-  putDownLock(userID)
-      
-#       #   ---- Check for a lock on table tblCellStatus.csv
-#       lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-#       if(lock == TRUE){
-#         stop("The function is currently locked;  try again in a minute.")
-#       } else if(lock == FALSE){
-#         #   ---- Lock the table tblCellStatus so that two users cannot update
-#         #   ---- it at the same time. 
-#         lockdf <- data.frame(userID=userID)
-#         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
-#       } else {
-#         stop("Something is really wrong.\n")
-#       }
+#   putDownLock(userID)
+# 
+#   #   ---- Make sure the user who put down the lock can continue.  
+#   if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#     if(userID != read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#       stop("Function call locked out after several attempts.  Try again.\n")
+#     }
+#   }
+#   
+#   Sys.sleep(15)
+
+      #   ---- Check for a lock on table tblCellStatus.csv
+      lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+      if(lock == TRUE){
+        stop("The function is currently locked;  try again in a minute.")
+      } else if(lock == FALSE){
+        #   ---- Lock the table tblCellStatus so that two users cannot update
+        #   ---- it at the same time. 
+        lockdf <- data.frame(userID=userID)
+        write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+        Sys.sleep(15)
+      } else {
+        stop("Something is really wrong.\n")
+      }
       
   out <- tryCatch(
     {
@@ -36,7 +46,7 @@ checkInCell <- function(theNext,userID){
             file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
           }
         }
-        stop("It appears as if the Grid_ID of the cell you're attempting to check in hasn't been checked out, or is already complete.  Investigate.")
+        stop("It appears as if the Grid_ID of the cell you're attempting to check in hasn't been checked out, or is already complete.  Investigate.\n")
       }
   
       #   ---- Get folder structure.  
@@ -168,15 +178,15 @@ checkInCell <- function(theNext,userID){
           #   ---- function checkInCell.
           
           #   ---- Check for a lock on table tblCellStatus.csv
-          lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
-          if(length(lock) > 0){
-            stop("The function is currently locked;  try again in a minute.")
-          } else {
-            #   ---- Lock the table tblCellStatus so that two users cannot update
-            #   ---- it at the same time. 
-            lockdf <- data.frame(userID=userID)
-            write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
-          }
+#           lock <- grep("tblCellStatusLOCK",dir("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database"),fixed=TRUE)
+#           if(length(lock) > 0){
+#             stop("The function is currently locked;  try again in a minute.")
+#           } else {
+#             #   ---- Lock the table tblCellStatus so that two users cannot update
+#             #   ---- it at the same time. 
+#             lockdf <- data.frame(userID=userID)
+#             write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+#           }
           
         } else {
           cat(paste0("The check of ",shp," found no towns to check.  Be sure this is correct. If so, continue.\n"))
@@ -201,6 +211,11 @@ checkInCell <- function(theNext,userID){
         #   ---- steals it in the middle of this function call?  Do I already have a lock?  Doesn't matter,
         #   ---- I don't think.  
         allShps <- data.frame(Recon_T_ID=character(),new1=character(),new2=character(),Recon_DIE=character())
+        
+        tblNames <- checkUser(userID)
+        pName <- tblNames[tblNames$userID == assign[assign$Grid_ID == theNext,]$digiPrimary,]$FirstName
+        sName <- tblNames[tblNames$userID == assign[assign$Grid_ID == theNext,]$digiSecondary,]$FirstName
+        
         names(allShps)[names(allShps) == "new1"] <- paste0(substr(pName,1,5),"_T_ID")
         names(allShps)[names(allShps) == "new2"] <- paste0(substr(sName,1,5),"_T_ID")
         
@@ -238,6 +253,9 @@ checkInCell <- function(theNext,userID){
       write.csv(assign,paste0("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus/tblCellStatus",newVersion,".csv"),row.names=FALSE)
       
       write.csv(assign,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatus.csv",row.names=FALSE)
+      
+      #   --- Give the computer time to catch up.  
+      Sys.sleep(20)
       
       #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
       if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){

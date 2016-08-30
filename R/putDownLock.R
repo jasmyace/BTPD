@@ -1,4 +1,4 @@
-putDownLock <- function(userID,timeLimit=180){
+putDownLock <- function(userID,timeLimit=240){
   
   #   ---- Check for a lock on table tblCellStatus.csv
   beg <- Sys.time()
@@ -18,14 +18,18 @@ putDownLock <- function(userID,timeLimit=180){
   #   ---- Now, repeat over the next minute.  You can only exit if we hit the userIDs 
   #   ---- allocated set of seconds, or if we've waited for more than 3 minutes.  
   
-  timeBlock <- 0
+
   repeat{  
+    
+    Sys.sleep(1.0)
     
     #   ---- Check if a lock currently exists.  
     lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
     
     #   ---- See if the clock is in this userID's time period.  
     if( matcher[floor(as.POSIXlt(Sys.time())$s) + 1] == userID ){
+      
+
       
       if(lock == FALSE){
         
@@ -35,18 +39,18 @@ putDownLock <- function(userID,timeLimit=180){
         lockdf <- data.frame(userID=userID)
         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
         break
-      } else if(lock == TRUE & difftime(Sys.time(),beg,units="secs") <= timeLimit & print == 1){
+      } else if(lock == TRUE & difftime(Sys.time(),beg,units="secs") <= timeLimit){
         cat("Trying for a lock...\n")
-        print <- 0
       } else if( lock == TRUE & difftime(Sys.time(),beg,units="secs") > timeLimit ){
         
         #   ---- Note that "three" is hard-coded here. 
-        cat("Function call locked out after three minutes.  There may be a problem.")
+        #   ---- Move this statement to the actual function call (check-out or check-in).
+        #cat("Function call locked out after three minutes.  There may be a problem.")
         break
       }
       
     } else {
-      print <- 1
+      #print <- 1
     }
   }  
 }

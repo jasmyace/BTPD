@@ -4,20 +4,31 @@
 
 checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing"){
 
-  putDownLock(userID)
+  # putDownLock(userID)
+  
+#   #   ---- Make sure the user who put down the lock can continue.  
+#   if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#     if(userID != read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#       stop("Function call locked out after several attempts.  Try again.\n")
+#     }
+#   }
+#   
+#   Sys.sleep(15)
+  
         
-#       #   ---- Check for a lock on table tblCellStatus.csv
-#       lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-#       if(lock == TRUE){
-#         stop("The function is currently locked;  try again in a minute.")
-#       } else if(lock == FALSE){
-#         #   ---- Lock the table tblCellStatus so that two users cannot update
-#         #   ---- it at the same time. 
-#         lockdf <- data.frame(userID=userID)
-#         write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
-#       } else {
-#         stop("Something is really wrong.\n")
-#       }
+      #   ---- Check for a lock on table tblCellStatus.csv
+      lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+      if(lock == TRUE){
+        stop("The function is currently locked;  try again in a minute.")
+      } else if(lock == FALSE){
+        #   ---- Lock the table tblCellStatus so that two users cannot update
+        #   ---- it at the same time. 
+        lockdf <- data.frame(userID=userID)
+        write.table(lockdf,"//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",row.names=FALSE)
+        Sys.sleep(15)
+      } else {
+        stop("Something is really wrong.\n")
+      }
       
   out <- tryCatch(
     {  
@@ -27,9 +38,9 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       #   ---- Check to make sure user is legitimate.  
       tblNames <- checkUser(userID)
       
-      #tblNames[tblNames$userID %in% c(219,764),]$doubleActive <- 1
+      #tblNames[tblNames$userID %in% c(219,100),]$doubleActive <- 1
       
-      pFirstName <- as.character(droplevels(tblNames[tblNames$userID == userID,]$FirstName))
+      pFirstName <- as.character(droplevels(tblNames[tblNames$userID == userID,]$FirstName)); pFirstName
       singleActive <- tblNames[tblNames$userID == userID,]$singleActive
       doubleActive <- tblNames[tblNames$userID == userID,]$doubleActive
       # doubleActive <- 1    # ---- Here for testing purposes.  
@@ -49,7 +60,7 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       anyOpen <- assign[assign$digiStatus == 1 & assign$digiUser == userID & assign$digiPartner == 998,]
       if(nrow(anyOpen) > 0){
         file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-        stop("Records indicate you have checked out singly digitized cell ",anyOpen[1,]$Grid_ID,".  Finish and close it, and then try again.")
+        stop("Records indicate you have checked out singly digitized cell ",anyOpen[1,]$Grid_ID,".  Finish and close it, and then try again.\n")
       }
   
       #   ---- Get the BAS rankings.  
@@ -58,6 +69,8 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
       #   ---- Make a master data frame.
       master <- merge(assign,ranks,by=c("Grid_ID"),all.x=TRUE,all.y=TRUE)
       master <- master[order(master$digiStatus,master$sampleID),]
+      
+      #write.csv(master,"C:/Users/jmitchell/Desktop/master.csv")
       
       #   ---- A safeguard to ensure we have all 11,101 records.
       nTotal <- nrow(assign)
@@ -138,6 +151,8 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
           Cvalid <-  !Cdigi & !Cbuff     # Want:     0  &  0  
           nCValid <- length(Cvalid[Cvalid == TRUE])  
       
+          # cat(paste0(i,"-",theNext," "))
+          
           #   ---- Actually do the check.  
           if( nCValid == nrow(checkBuf) ){
             
@@ -316,10 +331,14 @@ checkOutCell <- function(userID,tblDir="//lar-file-srv/Data/BTPD_2016/Digitizing
                 } else {
                   if( file.exists(paste0(bufFolder,"reconciling_Towns_",bufGrid_ID,".shp")) & (bufBASN < theBASN) ){
                     townShps[[j]] <- checkShp(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID))
-                    townShps[[j]]@data <- data.frame(Town_ID=as.numeric(townShps[[j]]@data$Recon_T_ID))
-                    #names(townShps[[j]]@data)[names(townShps[[j]]@data) == "Recon_T_ID"] <- "Town_ID"
                     
-                    #townShps[[j]] <- readOGR(substr(bufFolder,1,nchar(bufFolder) - 1),paste0("reconciling_Towns_",bufGrid_ID),verbose=FALSE)
+                    #   ---- We could have towns in the Recon shapefile that died.  Don't want to include these. 
+                    townShps[[j]] <- townShps[[j]][is.numeric(townShps[[j]]@data$Recon_T_ID),]
+                    if( nrow(townShps[[j]]) > 0){
+                      townShps[[j]]@data <- data.frame(Town_ID=as.numeric(townShps[[j]]@data$Recon_T_ID))
+                    } else {
+                      townShps[[j]] <- 'no features found' 
+                    }
                   }
                 }
               }

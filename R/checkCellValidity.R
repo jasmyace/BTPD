@@ -5,21 +5,22 @@
 
 checkCellValidity <- function(shp,userID){
 
-  # shp <- "pAli_Towns_CO141712"#"sCarissa_Towns_CO156212"
+  # shp <- 'pAnthony_Towns_CO161517'
+  # userID <- 546
   # shp <- "reconciling_Towns_CO137799"   userID <- 873
 
       
-  #   ---- Because we also call checkCellValidity when we check in a cell, which itself calls
-  #   ---- for a lock, remove it, if it exists, and then throw down another.  
-  
-  #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-  if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-    if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-      invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
-    }
-  }
-  
-  putDownLock(userID)
+#   #   ---- Because we also call checkCellValidity when we check in a cell, which itself calls
+#   #   ---- for a lock, remove it, if it exists, and then throw down another.  
+#   
+#   #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#   if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#     if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#       invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
+#     }
+#   }
+#   
+#   putDownLock(userID)
   
 #   #   ---- Check for a lock on table tblCellStatus.csv
 #   lock <- file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
@@ -67,12 +68,12 @@ checkCellValidity <- function(shp,userID){
     },
     error=function(cond){
       
-      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-          file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-        }
-      }
+#       #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#       if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#         if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#           file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+#         }
+#       }
       
       message(cond)
       message("\nYou possibly no longer possess this cell.  Investigate.\n")
@@ -100,12 +101,12 @@ checkCellValidity <- function(shp,userID){
       theCell@proj4string <- shpfile@proj4string
     } else {
       
-      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-          file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-        }
-      }
+#       #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#       if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#         if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#           file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+#         }
+#       }
       stop("The shapefile LocalGrid_",Grid_ID," lost its features.  Recreate and try again.")
     }
         
@@ -128,12 +129,12 @@ checkCellValidity <- function(shp,userID){
       },
       warning=function(cond){
         
-        #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-        if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-          if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-            file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-          }
-        }
+#         #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#         if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#           if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#             file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+#           }
+#         }
         
         message(cond)
         if(substr(cond$message,1,5) == "Ring "){
@@ -154,12 +155,12 @@ checkCellValidity <- function(shp,userID){
       },
       error=function(cond){
           
-        #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-        if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-          if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-            invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
-          }
-        }
+#         #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#         if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#           if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#             invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
+#           }
+#         }
         message(cond)
         return(1)
       }
@@ -191,12 +192,12 @@ checkCellValidity <- function(shp,userID){
       },
       error=function(cond){
         
-        #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-        if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-          if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-            invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
-          }
-        }
+#         #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#         if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#           if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#             invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
+#           }
+#         }
         message(cond)
         return(1)
       }
@@ -226,12 +227,12 @@ checkCellValidity <- function(shp,userID){
       },
       error=function(cond){
           
-        #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-        if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-          if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-            invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
-          }
-        }
+#         #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#         if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#           if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#             invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
+#           }
+#         }
         message(cond)
         return(1)
       }
@@ -269,12 +270,12 @@ checkCellValidity <- function(shp,userID){
       },
       error=function(cond){
         
-        #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-        if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-          if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-            invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
-          }
-        }
+#         #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#         if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#           if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#             invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
+#           }
+#         }
         message(cond)
         return(1)
       }
@@ -286,57 +287,24 @@ checkCellValidity <- function(shp,userID){
       thing <- as.character(paste0("The check of ",shp," is complete, with no errors found.\n"))
       cat(thing)
       
-      #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-      if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-        if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-          invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
-        }
-      }
+#       #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#       if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#         if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#           invisible(file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))
+#         }
+#       }
     }
   } else {
     
     #   ---- If we get here, no towns were found.  So get rid of the lock we threw down and 
     #   ---- call it a day.  
     
-    #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-    if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
-      if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-        file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-      }
-    }
+#     #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
+#     if(invisible(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt"))){
+#       if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
+#         file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
+#       }
+#     }
     
   } 
-  
-  
-  
-#     },
-#     error=function(cond){
-#       message("It appears you broke the function;  however, any lock originally set has been removed.\n")
-#       message("Determine the cause of failure, remedy, and then try again.  Ask for help if this result seems surprising.\n")
-#       
-#       #   ---- Remove the lock, if it exists, and the user calling the function placed it there.
-#       if(file.exists("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")){
-#         if(userID == read.table("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt",stringsAsFactors=FALSE)[2,1]){
-#           file.remove("//LAR-FILE-SRV/Data/BTPD_2016/Analysis/Database/tblCellStatusLOCK.txt")
-#         }
-#       }
-#       
-#       message("Here's the original error message:\n")
-#       message(cond)
-#       message(report)
-#       # Choose a return value in case of error
-#       return(NA)
-#     },
-#     warning=function(cond){
-#       #message("Here's the original warning message:")
-#       message(cond)
-#       if(substr(cond$message,1,5) == "Ring "){
-#         message("\nThis Grid_ID's set of towns has at least one sliver.  Investigate via the coordinates provided.\n")
-#       }
-#       # Choose a return value in case of warning
-#       return(NA)
-#     }
-#   )
-    
-    
 }  
